@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* body:before, body:after {
+  content: none !important;
+  background: transparent !important;
+} */
+
+.circular-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%; /* makes the container circular */
+  overflow: hidden;   /* ensures content doesn’t overflow the circle */
+}
+
+
+/* In your CSS or a global style */
+.will-change-transform {
+  transform: translateZ(0);
+}
+
+.debug-layout * {
+  outline: 1px solid rgba(255, 0, 0, 0.2) !important;
+}
+
+
+@layer utilities {
+  .scroll-section {
+    @apply relative min-h-screen w-full;
+  }
+  
+  .parallax-bg {
+    @apply relative w-full h-full transform will-change-transform;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Add to your globals.css */
+
+/* Smooth scroll container */
+.smooth-scroll {
+  @apply fixed inset-0 w-full;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Enable hardware acceleration */
+.parallax-content {
+  @apply relative w-full;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Parallax sections */
+.parallax-section {
+  @apply relative overflow-hidden;
+  transform-style: preserve-3d;
+}
+
+/* Different parallax speeds */
+.parallax-slow {
+  --parallax-speed: 0.3;
+}
+
+.parallax-medium {
+  --parallax-speed: 0.5;
+}
+
+.parallax-fast {
+  --parallax-speed: 0.7;
+}
+
+/* Depth layers */
+.parallax-deep {
+  transform: translateZ(-100px) scale(2);
+}
+
+.parallax-shallow {
+  transform: translateZ(-50px) scale(1.5);
+}
+
+.parallax-surface {
+  transform: translateZ(0) scale(1);
+}
+
+/* Premium visual effects */
+@media screen and (min-width: 768px) {
+  /* Only apply backdrop filters on larger screens */
+  .premium-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+.premium-shadow {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Smooth transition */
+.smooth-transition {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 500ms;
+}
+
+:root {
+  /* Font size scale */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Letter spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
