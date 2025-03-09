@@ -1,4 +1,3 @@
-Based on the gathered information, here is a structured README for the `samarthsinh2660/code-connect` repository:
 
 ---
 
