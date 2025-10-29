@@ -115,97 +115,23 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 📁 Project Structure
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── landing.tsx        # Landing page component
-│   ├── editor/[roomid]/   # Dynamic editor routes
-│   └── layout.tsx         # Root layout
-├── components/            # Reusable UI components
-│   ├── Editor/           # Editor-specific components
-│   │   ├── Client.tsx    # User list component
-│   │   ├── Chat.tsx      # Chat interface
-│   │   ├── WhiteBoard.tsx # Drawing whiteboard
-│   │   └── AiAssistant.tsx # AI chat component
-│   └── Dashboard/        # Landing page components
-├── hooks/                 # Custom React hooks
-│   └── use-FluidCursor.ts # Fluid simulation hook
-├── lib/                   # Utility functions and constants
-│   └── actions.ts        # Socket.IO action types
-├── providers/            # React context providers
-│   └── socketProvider.tsx # Socket.IO connection provider
-└── types/                 # TypeScript type definitions
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 🔧 Available Scripts
+## Learn More
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run shadcn` - Run shadcn/ui CLI
+To learn more about Next.js, take a look at the following resources:
 
-## 🚀 Deployment
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### Frontend Deployment
-The easiest way to deploy the Next.js app is to use [Vercel](https://vercel.com):
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy automatically
+## Deploy on Vercel
 
-### Backend Deployment
-The Socket.IO server is deployed on Railway. For local development or custom deployment:
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-1. Clone the backend repository (separate repo)
-2. Set up environment variables
-3. Deploy to your preferred hosting platform (Railway, Heroku, AWS, etc.)
-
-## 🛠️ Tech Stack Details
-
-### Frontend Dependencies
-- **UI Framework**: Next.js 15, React 18
-- **Styling**: Tailwind CSS, shadcn/ui
-- **Animations**: Framer Motion, GSAP
-- **Editors**: Monaco Editor, CodeMirror
-- **3D Graphics**: Three.js, React Three Fiber
-- **Real-time**: Socket.IO Client
-- **Authentication**: Clerk
-- **AI**: Google Generative AI, OpenAI
-- **Icons**: Lucide React
-- **State**: React Hooks, Context API
-
-### Key Libraries
-- `@codemirror/*`: CodeMirror editor integration
-- `@monaco-editor/react`: Monaco editor wrapper
-- `@react-three/fiber`: React renderer for Three.js
-- `@radix-ui/*`: Headless UI components
-- `framer-motion`: Animation library
-- `socket.io-client`: WebSocket client
-- `openai`: OpenAI API client
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Built with inspiration from modern collaborative coding platforms
-- UI components from shadcn/ui
-- Fluid simulation based on WebGL techniques
-- Icons from Lucide React
-
-
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
