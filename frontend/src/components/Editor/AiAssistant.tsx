@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { PlaceholdersAndVanishInput } from '../ui/placeholders-and-vanish-input';
 import { easeOut } from 'framer-motion'
+import { useAuth } from '@clerk/nextjs';
 
 const messageAnimations = {
   initial: {
@@ -251,10 +252,10 @@ const EmptyState = () => {
       <h3 className="text-xl  text-white mt-2 tracking-wide drop-shadow-sm transition-all duration-300 hover:scale-105">Ask anything</h3>
       <div className="text-gray-400 text-sm max-w-xs mt-2 space-y-2">
         <p>I can help with coding questions, explain concepts, assist in bugs and errors.</p>
-        <div className="bg-gray-800/50 rounded-lg p-3 mt-3">
-          <p className="text-blue-400 font-medium text-xs mb-1">💡 Pro tip: Use @mycode</p>
-          <p className="text-xs text-gray-300">Type "@" to reference your current code in questions!</p>
-        </div>
+          <div className="bg-gray-800/50 rounded-lg p-3 mt-3">
+            <p className="text-blue-400 font-medium text-xs mb-1">💡 Pro tip: Use @mycode</p>
+            <p className="text-xs text-gray-300">Type "@" to reference your current code in questions!</p>
+          </div>
       </div>
 
       <motion.div
@@ -295,6 +296,9 @@ const AiAssistant = ({ isOpen, onToggle, code, language }: AiAssistantProps) => 
   // @mycode feature state
   const [showMyCodeDropdown, setShowMyCodeDropdown] = useState(false);
   const [atMentionPosition, setAtMentionPosition] = useState<number | null>(null);
+
+  // Clerk authentication for premium features
+  const { isLoaded, isSignedIn } = useAuth();
 
 
   useEffect(() => {
@@ -413,7 +417,14 @@ const AiAssistant = ({ isOpen, onToggle, code, language }: AiAssistantProps) => 
     setTimeout(scrollToBottom, 100);
   }, [input, isLoading]);
 
-  const placeholders = [
+  const placeholders = isLoaded && isSignedIn ? [
+    "Debug this React component with advanced error analysis",
+    "Optimize this algorithm for better performance",
+    "Write comprehensive unit tests for this function",
+    "Refactor this code following best practices",
+    "Explain this complex algorithm step by step",
+    "Generate documentation for this code",
+  ] : [
     "What's the first rule of Fight Club?",
     "Who is Tyler Durden?",
     "Where is Andrew Laeddis Hiding?",
@@ -560,6 +571,16 @@ const SuggestionChip = ({ text }: { text: string }) => {
                 <Bot className="w-5 h-5 text-blue-400" />
               </motion.div>
               <span className="font-semibold text-white">AI Assistant</span>
+              {isLoaded && isSignedIn && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full border border-blue-500/30"
+                >
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-white font-medium">Premium</span>
+                </motion.div>
+              )}
             </div>
             <Button
               variant="ghost"
