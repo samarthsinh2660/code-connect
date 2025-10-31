@@ -11,5 +11,9 @@ export const ACTIONS = {
   STOP_TYPING: 'stop-typing',
   SEND_MESSAGE: 'send-message',
   RECEIVE_MESSAGE: 'receive-message',
-  SYNC_MESSAGES: 'sync-messages'  // Add this new action
-}as const;
+  SYNC_MESSAGES: 'sync-messages',
+  WHITEBOARD_DRAW: 'whiteboard-draw',
+  WHITEBOARD_CLEAR: 'whiteboard-clear',
+  WHITEBOARD_SYNC: 'whiteboard-sync',
+  WHITEBOARD_SYNC_REQUEST: 'whiteboard-sync-request'
+} as const;

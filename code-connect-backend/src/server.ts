@@ -8,8 +8,14 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import createLogger from './utils/logger.js';
 import { successResponse } from './utils/response.js';
-import apiRoutes from './routes/index.js';
 import rateLimit from 'express-rate-limit';
+
+// Import routes directly (like inventory management system)
+import roomRoutes from './routes/room.routes.js';
+import userRoutes from './routes/user.routes.js';
+import authRoutes from './routes/auth.routes.js';
+import aiRoutes from './routes/ai.routes.js';
+import compilerRoutes from './routes/compiler.routes.js';
 
 const logger = createLogger('@server');
 
@@ -32,11 +38,11 @@ async function startServer() {
             allowedHeaders: ['Content-Type', 'Authorization']
         }));
 
+        // Apply global rate limiting (like inventory management system)
+        app.use(apiLimiter);
+
         app.use(express.json({ limit: '10mb' }));
         app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-        // Apply general rate limiting to all routes
-        app.use(apiLimiter);
 
         // Specific rate limiters for different services
         const compilerLimiter = rateLimit({
@@ -63,8 +69,12 @@ async function startServer() {
         const io = initializeSocketIO(httpServer);
         logger.info('✅ Socket.IO initialized');
 
-        // Mount API routes
-        app.use('/api', apiRoutes);
+        // Mount API routes directly (like inventory management system)
+        app.use('/api/auth', authRoutes);
+        app.use('/api/rooms', roomRoutes);
+        app.use('/api/users', userRoutes);
+        app.use('/api/ai', aiRoutes);
+        app.use('/api/compiler', compilerRoutes);
         logger.info('✅ API routes mounted');
 
         // Health check endpoint

@@ -50,9 +50,22 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                     };
                     rooms.set(roomId, roomData);
 
-                    // Save to database
+                    // Save to database (upsert to handle existing rooms)
                     try {
-                        await RoomModel.create(roomData);
+                        await RoomModel.findOneAndUpdate(
+                            { roomId },
+                            {
+                                $setOnInsert: {
+                                    roomId,
+                                    code: '// Start coding here...',
+                                    language: 'javascript',
+                                    messages: [],
+                                    createdAt: new Date()
+                                },
+                                lastActivity: new Date()
+                            },
+                            { upsert: true, new: true }
+                        );
                     } catch (dbError) {
                         logger.warn('Failed to save room to DB:', dbError);
                     }
@@ -68,11 +81,19 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                     });
                 }
 
-                // Emit to all clients in room
-                io.to(roomId).emit(SOCKET_ACTIONS.JOINED, {
+                // Emit to all clients in room except the joining user
+                socket.to(roomId).emit(SOCKET_ACTIONS.JOINED, {
                     clients: roomData.clients,
                     user,
                     socketId: socket.id
+                });
+
+                // Send confirmation to the joining user
+                socket.emit(SOCKET_ACTIONS.JOINED, {
+                    clients: roomData.clients,
+                    user,
+                    socketId: socket.id,
+                    isSelf: true // Flag to indicate this is the joining user
                 });
 
                 // Sync current code to new user
@@ -131,14 +152,14 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
         });
 
         // SEND MESSAGE
-        socket.on(SOCKET_ACTIONS.SEND_MESSAGE, async ({ roomId, username, message }) => {
+        socket.on(SOCKET_ACTIONS.SEND_MESSAGE, async ({ roomId, message }) => {
             try {
                 const roomData = rooms.get(roomId);
                 if (roomData) {
                     const newMessage = {
                         id: uuidv4(),
-                        username,
-                        content: message,
+                        username: message.sender,
+                        content: message.content,
                         timestamp: new Date()
                     };
 
@@ -162,7 +183,7 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                         logger.warn('Failed to save message to DB:', dbError);
                     }
 
-                    logger.debug(`Message sent in room ${roomId} by ${username}`);
+                    logger.debug(`Message sent in room ${roomId} by ${message.sender}`);
                 }
             } catch (error) {
                 logger.error('Error sending message:', error);

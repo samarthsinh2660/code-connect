@@ -25,10 +25,23 @@ const SocketProviderInner = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastError, setLastError] = useState<Error | null>(null);
-  const searchParams = useSearchParams();
-  const username = searchParams.get('username');
+  
+  // Safely access searchParams with error handling
+  let searchParams, username;
+  try {
+    searchParams = useSearchParams();
+    username = searchParams?.get('username');
+  } catch (error) {
+    console.error("Error accessing search params in socket provider:", error);
+    username = null;
+  }
 
   useEffect(() => {
+    // Only create socket if we have a username (avoid premature initialization)
+    if (!username) {
+      return;
+    }
+
     const socketInstance = ClientIO(process.env.NEXT_PUBLIC_SOCKET_URL ?? 'https://code-connect-server-production.up.railway.app', {
       forceNew: true,
       reconnectionAttempts: 5,
@@ -51,7 +64,8 @@ const SocketProviderInner = ({ children }: { children: React.ReactNode }) => {
 
     // Connection event handlers
     socketInstance.on('connect', () => {
-      console.log('Socket connected with ID:', socketInstance.id);
+      console.log('🔌 Socket connected with ID:', socketInstance.id);
+      console.log('🔑 Socket auth username:', username);
       setIsConnected(true);
       setLastError(null);
     });
@@ -82,7 +96,7 @@ const SocketProviderInner = ({ children }: { children: React.ReactNode }) => {
         socketInstance.disconnect();
       }
     };
-  }, [username]);
+  }, [username]); // Only depend on username
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, lastError }}>

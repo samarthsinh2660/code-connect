@@ -76,6 +76,18 @@ const DialogDescription = dynamic(
 const Input = dynamic(
   () => import("@/components/ui/input").then((mod) => mod.Input)
 );
+const TooltipProvider = dynamic(
+  () => import("@/components/ui/tooltip").then((mod) => mod.TooltipProvider)
+);
+const Tooltip = dynamic(
+  () => import("@/components/ui/tooltip").then((mod) => mod.Tooltip)
+);
+const TooltipTrigger = dynamic(
+  () => import("@/components/ui/tooltip").then((mod) => mod.TooltipTrigger)
+);
+const TooltipContent = dynamic(
+  () => import("@/components/ui/tooltip").then((mod) => mod.TooltipContent)
+);
 const Client = dynamic(
   () => import("@/components/Editor/Client").then((mod) => mod.Client),
   { ssr: false }
@@ -116,14 +128,27 @@ function EditorPageContent() {
   // Socket and Client State
   const socketRef = useRef<any>(null)
   const [clients, setClients] = useState<{ socketId: string; username: string }[]>([])
-  const params = useParams()
-  const searchParams = useSearchParams()
-  const roomId = params?.roomid
+  
+  // Safely get params and searchParams with error handling
+  let params, searchParams, roomId, username;
+  try {
+    params = useParams()
+    searchParams = useSearchParams()
+    roomId = params?.roomid
+    username = searchParams?.get("username")
+  } catch (error) {
+    console.error("Error accessing dynamic params:", error)
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-black">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    )
+  }
+
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSocketConnected, setIsSocketConnected] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "failed">("connecting")
-  const username = searchParams.get("username")
   const [typingUser, setTypingUser] = useState<string | null>(null)
   const [consoleHeight, setConsoleHeight] = useState(210)
   const typingTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
@@ -182,6 +207,13 @@ function EditorPageContent() {
   const TYPING_INTERVAL = 1000 // Minimum time between typing events in ms
   const { socket, isConnected } = useSocket()
 
+  // Properly assign socket to socketRef for Whiteboard component
+  useEffect(() => {
+    if (socket) {
+      socketRef.current = socket
+    }
+  }, [socket])
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowConnectingSplash(false);
@@ -237,28 +269,48 @@ function EditorPageContent() {
 
     console.log("Joining room with:", { roomId, username: username })
 
-    socket.emit(ACTIONS.JOIN, {
-      id: roomId,
-      user: username,
-    })
+    // Ensure socket is ready before emitting
+    if (socket && socket.connected) {
+      socket.emit(ACTIONS.JOIN, {
+        id: roomId,
+        user: username,
+      })
+
+      // Set timeout for backend response
+      const joinTimeout = setTimeout(() => {
+        console.error("Backend JOIN timeout - no response received")
+        setConnectionStatus("failed")
+        setIsLoading(false)
+        toast.error("Server not responding. Please try again later.")
+      }, 10000) // 10 second timeout
+
+      // Clear timeout when JOINED event is received
+      socket.once(ACTIONS.JOINED, () => {
+        clearTimeout(joinTimeout)
+      })
+    } else {
+      console.warn("Socket not ready for JOIN emission")
+    }
 
     // Handle join response
-    socket.on(ACTIONS.JOINED, ({ clients, user, socketId }) => {
-      console.log("JOINED event received:", { clients, user, socketId })
-      toast.success(`${user} joined the room`)
+    socket.on(ACTIONS.JOINED, ({ clients, user, socketId, isSelf }) => {
+      // Only show toast for other users joining (not for self)
+      if (!isSelf) {
+        toast.success(`${user} joined the room`)
+      }
+      
       setClients(clients)
       setConnectionStatus("connected")
       setIsLoading(false)
     })
 
     socket.on(ACTIONS.DISCONNECTED, ({ socketId, user, clients: updatedClients }) => {
-      console.log("DISCONNECTED event received:", { socketId, user, clients: updatedClients })
       setClients(updatedClients)
       toast.info(`${user} left the room`)
     })
 
     const handleBeforeUnload = () => {
-      if (socket && roomId) {
+      if (socket && socket.connected && roomId) {
         socket.emit(ACTIONS.LEAVE, { roomId })
       }
     }
@@ -383,7 +435,11 @@ function EditorPageContent() {
 
   const handleRunCode = () => {
     try {
-      socket?.emit(ACTIONS.COMPILE, { roomId, code, language })
+      if (socket && isConnected) {
+        socket.emit(ACTIONS.COMPILE, { roomId, code, language })
+      } else {
+        console.warn("Socket not connected, cannot run code")
+      }
     } catch (err: any) {
       setOutput(`Error: ${err.message}`)
     }
@@ -409,7 +465,7 @@ function EditorPageContent() {
 
   const confirmLeaveRoom = () => {
     try {
-      if (socket) {
+      if (socket && socket.connected) {
         socket.emit(ACTIONS.LEAVE, { roomId })
         socket.disconnect()
       }
@@ -728,8 +784,8 @@ function EditorPageContent() {
               </Button>
             </motion.div>
 
-            <div className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-              Language: {language}
+            <div className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
+              Language: {language} <span className="text-blue-400">(Settings → Language)</span>
             </div>
           </div>
           <div className="flex items-center space-x-4 mr-8">
@@ -811,7 +867,8 @@ function EditorPageContent() {
               },
               {
                 icon: <Settings className="h-5 w-5" />,
-                onClick: toggleSettings
+                onClick: toggleSettings,
+                tooltip: "Settings"
               }
             ].map((button, index) => (
               <motion.div
@@ -819,9 +876,20 @@ function EditorPageContent() {
                 whileHover={{ rotate: 0, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <Button variant="ghost" size="icon" onClick={button.onClick}>
-                  {button.icon}
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={button.onClick}>
+                        {button.icon}
+                      </Button>
+                    </TooltipTrigger>
+                    {button.tooltip && (
+                      <TooltipContent>
+                        <p>{button.tooltip}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </motion.div>
             ))}
           </div>
@@ -879,7 +947,7 @@ function EditorPageContent() {
 
           {isChatOpen && (
   <motion.div 
-    className="w-90 border-l max-h-full border-gray-700" 
+    className="w-80 border-l border-gray-700 h-full" 
     variants={itemVariants}
     initial="hidden"
     animate="visible"
@@ -897,12 +965,16 @@ function EditorPageContent() {
           <AiAssistant
             isOpen={isAiPanelOpen}
             onToggle={() => setIsAiPanelOpen(!isAiPanelOpen)}
+            code={code}
+            language={language}
           />
         </motion.div>
         <Whiteboard
           isOpen={isWhiteboardOpen}
           onToggle={() => setIsWhiteboardOpen(!isWhiteboardOpen)}
-        />
+          socketRef={socketRef}
+          roomId={Array.isArray(roomId) ? roomId[0] : roomId}
+/>
       </motion.div>
 
       {/* Settings Panel */}
@@ -910,16 +982,21 @@ function EditorPageContent() {
         {isSettingsOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 1 }}
-            animate={{ opacity: 1, y: 1, scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`absolute right-4 top-16 w-80 p-6 rounded-lg shadow-lg ${isDarkMode ? "bg-gray-800" : "bg-white"
-              }`}
+            className={`fixed right-4 top-20 w-80 p-6 rounded-lg shadow-xl border z-50 ${
+              isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+            }`}
           >
-            <h3 className="text-xl font-semibold mb-6">Settings</h3>
+            <h3 className={`text-xl font-semibold mb-6 ${
+              isDarkMode ? "text-white" : "text-black"
+            }`}>Settings</h3>
             <div className="space-y-6">
               <div>
-                <label htmlFor="fontSize" className="block mb-2 text-sm font-medium">
+                <label htmlFor="fontSize" className={`block mb-2 text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
                   Font Size: {fontSize}px
                 </label>
                 <Slider
@@ -932,7 +1009,9 @@ function EditorPageContent() {
                 />
               </div>
               <div>
-                <label htmlFor="language" className="block mb-2 text-sm font-medium">
+                <label htmlFor="language" className={`block mb-2 text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
                   Language
                 </label>
                 <Select value={language} onValueChange={setLanguage}>
@@ -944,11 +1023,22 @@ function EditorPageContent() {
                     <SelectItem value="python">Python</SelectItem>
                     <SelectItem value="java">Java</SelectItem>
                     <SelectItem value="cpp">C++</SelectItem>
+                    <SelectItem value="c">C</SelectItem>
+                    <SelectItem value="csharp">C#</SelectItem>
+                    <SelectItem value="go">Go</SelectItem>
+                    <SelectItem value="rust">Rust</SelectItem>
+                    <SelectItem value="typescript">TypeScript</SelectItem>
+                    <SelectItem value="php">PHP</SelectItem>
+                    <SelectItem value="ruby">Ruby</SelectItem>
+                    <SelectItem value="swift">Swift</SelectItem>
+                    <SelectItem value="kotlin">Kotlin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label htmlFor="theme" className="block mb-2 text-sm font-medium">
+                <label htmlFor="theme" className={`block mb-2 text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
                   Theme
                 </label>
                 <Select value={theme} onValueChange={setTheme}>
@@ -1022,7 +1112,11 @@ function EditorPageContent() {
 
 export default function EditorPage() {
   return (
-    <Suspense fallback={<div></div>}>
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-black">
+        <div className="text-white text-xl">Loading editor...</div>
+      </div>
+    }>
       <EditorPageContent />
     </Suspense>
   )

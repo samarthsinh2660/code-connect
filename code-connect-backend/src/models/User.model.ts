@@ -8,6 +8,14 @@ export interface IUser extends Document {
     currentRoom?: string;
     lastSeen: Date;
     createdAt: Date;
+
+    // Profile fields
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+    bio?: string;
+    clerkId?: string; // Link to Clerk user
+    provider?: 'email' | 'google' | 'github' | 'linkedin';
 }
 
 const UserSchema = new Schema<IUser>({
@@ -17,7 +25,15 @@ const UserSchema = new Schema<IUser>({
     socketId: { type: String },
     currentRoom: { type: String },
     lastSeen: { type: Date, default: Date.now },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+
+    // Profile fields
+    firstName: { type: String },
+    lastName: { type: String },
+    avatarUrl: { type: String },
+    bio: { type: String },
+    clerkId: { type: String, sparse: true, index: true }, // Link to Clerk user
+    provider: { type: String, enum: ['email', 'google', 'github', 'linkedin'], default: 'email' }
 }, {
     timestamps: true
 });
@@ -25,5 +41,6 @@ const UserSchema = new Schema<IUser>({
 // Indexes for faster queries
 UserSchema.index({ username: 1 });
 UserSchema.index({ socketId: 1 });
+UserSchema.index({ clerkId: 1 });
 
 export const UserModel = mongoose.model<IUser>('User', UserSchema);

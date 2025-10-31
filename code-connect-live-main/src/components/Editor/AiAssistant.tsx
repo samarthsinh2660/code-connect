@@ -1,14 +1,11 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, ChevronRight, Copy, Check, Loader2, SendIcon, BotOffIcon, BotIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import OpenAI from 'openai';
-import { FuturisticInput } from '../Dashboard/buttons/FuturisticInput';
 import { PlaceholdersAndVanishInput } from '../ui/placeholders-and-vanish-input';
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const messageAnimations = {
   initial: {
@@ -229,18 +226,6 @@ const MessageContainer = React.forwardRef<HTMLDivElement, React.PropsWithChildre
 
 MessageContainer.displayName = 'MessageContainer';
 
-const openai = new OpenAI({
-  dangerouslyAllowBrowser: true,
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: "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",
-  defaultHeaders: {
-    "HTTP-Referer": "",
-    "X-Title": "CodeConnect"
-  }
-});
-
-// client = genai.Client(api_key="AIzaSyCF6mKRofVaWa-4RC6hjYQtijNqxOZSt58")
-
 const EmptyState = () => {
   return (
     <motion.div
@@ -249,8 +234,8 @@ const EmptyState = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* <motion.div
-        className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 flex items-center justify-center relative overflow-hidden shadow-xl"
+      <motion.div
+        className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 via-blue-400 to-cyan-500 flex items-center justify-center relative overflow-hidden shadow-xl"
         animate={{
           scale: [1, 1.05, 0.98, 1.05, 1],
           rotate: [0, 2, 0, -2, 0],
@@ -261,305 +246,15 @@ const EmptyState = () => {
           repeatType: "loop",
           ease: "easeInOut"
         }}
-      >
-        <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600/40 via-blue-300/30 to-sky-400/40"
-          style={{
-            backgroundSize: "400% 100%"
-          }}
-          animate={{
-            backgroundPosition: ["0% center", "100% center", "0% center"]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-
-        <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-800/30 via-cyan-400/25 to-blue-500/30"
-          style={{
-            backgroundSize: "200% 200%",
-            mixBlendMode: "soft-light"
-          }}
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"]
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-            repeatType: "reverse"
-          }}
-        />
-
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          animate={{
-            boxShadow: [
-              "0 0 0 0 rgba(59, 130, 246, 0)",
-              "0 0 0 10px rgba(59, 130, 246, 0.15)",
-              "0 0 0 20px rgba(59, 130, 246, 0.1)",
-              "0 0 0 30px rgba(59, 130, 246, 0.05)",
-              "0 0 0 0 rgba(59, 130, 246, 0)"
-            ]
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            repeatType: "loop"
-          }}
-        />
-
-        <motion.div
-          className="absolute w-full h-full rounded-full bg-gradient-to-r from-blue-200/30 via-transparent to-blue-200/30"
-          animate={{
-            rotate: [0, 360]
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-
-        <div className="relative w-full h-full">
-          {[...Array(12)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-blue-100"
-              style={{
-                width: `${1 + Math.random() * 2}px`,
-                height: `${1 + Math.random() * 2}px`,
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
-                filter: "blur(0.5px)"
-              }}
-              animate={{
-                y: [Math.random() * -18, Math.random() * 18, Math.random() * -18],
-                x: [Math.random() * -18, Math.random() * 18, Math.random() * -18],
-                opacity: [0.5, 0.9, 0.5],
-                scale: [0.8, 1.6, 0.8]
-              }}
-              transition={{
-                duration: 4 + Math.random() * 4,
-                repeat: Infinity,
-                delay: Math.random() * 2
-              }}
-            />
-          ))}
-        </div>
-
-        <motion.div
-          className="relative z-10 w-16 h-16 rounded-full bg-gradient-to-br from-white/60 via-blue-200/40 to-blue-300/20"
-          animate={{
-            opacity: [0.6, 0.8, 0.6],
-            scale: [0.9, 1.1, 0.9]
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity
-          }}
-        />
-
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: "radial-gradient(circle at 50% 50%, rgba(219, 234, 254, 0.4) 0%, transparent 70%)"
-          }}
-          animate={{
-            opacity: [0.5, 0.7, 0.5]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "mirror"
-          }}
-        />
-
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-32 h-2 bg-blue-300/30"
-            style={{
-              borderRadius: "2px",
-              filter: "blur(2px)",
-              transformOrigin: "center",
-              rotate: `${i * 60}deg`
-            }}
-            animate={{
-              rotate: [`${i * 60}deg`, `${i * 60 + 180}deg`, `${i * 60 + 360}deg`],
-              opacity: [0, 0.3, 0]
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              delay: i * 1.5,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-      </motion.div> */}
-
-<motion.div
-  className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 via-blue-400 to-cyan-500 flex items-center justify-center relative overflow-hidden shadow-xl"
-  animate={{
-    scale: [1, 1.05, 0.98, 1.05, 1],
-    rotate: [0, 2, 0, -2, 0],
-  }}
-  transition={{
-    duration: 10,
-    repeat: Infinity,
-    repeatType: "loop",
-    ease: "easeInOut"
-  }}
->
-  {/* Main background shimmer effect */}
-  <motion.div
-    className="absolute inset-0 rounded-full bg-gradient-to-r from-white/30 via-blue-200/20 to-white/30"
-    style={{
-      backgroundSize: "400% 100%"
-    }}
-    animate={{
-      backgroundPosition: ["0% center", "100% center", "0% center"]
-    }}
-    transition={{
-      duration: 8,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-  />
-  
-  {/* Diagonal flowing gradient */}
-  <motion.div
-    className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-100/20 via-white/25 to-blue-100/20"
-    style={{
-      backgroundSize: "200% 200%",
-      mixBlendMode: "soft-light"
-    }}
-    animate={{
-      backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"]
-    }}
-    transition={{
-      duration: 7,
-      repeat: Infinity,
-      ease: "easeInOut",
-      repeatType: "reverse"
-    }}
-  />
-  
-  {/* Enhanced pulse rings */}
-  <motion.div
-    className="absolute inset-0 rounded-full"
-    animate={{
-      boxShadow: [
-        "0 0 0 0 rgba(255, 255, 255, 0)",
-        "0 0 0 10px rgba(255, 255, 255, 0.1)",
-        "0 0 0 20px rgba(255, 255, 255, 0.05)",
-        "0 0 0 30px rgba(255, 255, 255, 0.02)",
-        "0 0 0 0 rgba(255, 255, 255, 0)"
-      ]
-    }}
-    transition={{
-      duration: 4,
-      repeat: Infinity,
-      repeatType: "loop"
-    }}
-  />
-  
-  {/* Inner rotating glow */}
-  <motion.div
-    className="absolute w-full h-full rounded-full bg-gradient-to-r from-white/40 via-transparent to-white/40"
-    animate={{
-      rotate: [0, 360]
-    }}
-    transition={{
-      duration: 15,
-      repeat: Infinity,
-      ease: "linear"
-    }}
-  />
-  
-  {/* Snowflake-like particles */}
-  <div className="relative w-full h-full">
-    {[...Array(12)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full bg-white"
-        style={{
-          width: `${1 + Math.random() * 2}px`,
-          height: `${1 + Math.random() * 2}px`,
-          left: `${20 + Math.random() * 60}%`,
-          top: `${20 + Math.random() * 60}%`,
-          filter: "blur(0.5px)"
-        }}
-        animate={{
-          y: [Math.random() * -18, Math.random() * 18, Math.random() * -18],
-          x: [Math.random() * -18, Math.random() * 18, Math.random() * -18],
-          opacity: [0.5, 0.9, 0.5],
-          scale: [0.8, 1.6, 0.8]
-        }}
-        transition={{
-          duration: 4 + Math.random() * 4,
-          repeat: Infinity,
-          delay: Math.random() * 2
-        }}
       />
-    ))}
-  </div>
-  
-  {/* Center orb with subtle pulsing */}
-  <motion.div
-    className="relative z-10 w-16 h-16 rounded-full bg-gradient-to-br from-white/60 via-white/40 to-white/10"
-    animate={{
-      opacity: [0.6, 0.8, 0.6],
-      scale: [0.9, 1.1, 0.9]
-    }}
-    transition={{
-      duration: 3,
-      repeat: Infinity
-    }}
-  />
-  
-  {/* Inner light source */}
-  <motion.div
-    className="absolute inset-0 rounded-full"
-    style={{
-      background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4) 0%, transparent 70%)"
-    }}
-    animate={{
-      opacity: [0.5, 0.7, 0.5]
-    }}
-    transition={{
-      duration: 2,
-      repeat: Infinity,
-      repeatType: "mirror"
-    }}
-  />
-  
-  {/* Extra lightbeam effect */}
-  <motion.div
-    className="absolute w-32 h-4 bg-white/20"
-    style={{ 
-      borderRadius: "2px",
-      filter: "blur(2px)",
-      transformOrigin: "center" 
-    }}
-    animate={{
-      rotate: [0, 180, 360],
-      opacity: [0, 0.3, 0]
-    }}
-    transition={{
-      duration: 6,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-  />
-</motion.div>
-      <h3 className="text-xl  text-white mt-2 tracking-wide drop-shadow-sm transition-all duration-300 hover:scale-105">Ask anything</h3>        <p className="text-gray-400 text-sm max-w-xs">
-        {/* I can help with coding questions, explain concepts, assist in bugs and errors. */}
-      </p>
+      <h3 className="text-xl  text-white mt-2 tracking-wide drop-shadow-sm transition-all duration-300 hover:scale-105">Ask anything</h3>
+      <div className="text-gray-400 text-sm max-w-xs mt-2 space-y-2">
+        <p>I can help with coding questions, explain concepts, assist in bugs and errors.</p>
+        <div className="bg-gray-800/50 rounded-lg p-3 mt-3">
+          <p className="text-blue-400 font-medium text-xs mb-1">💡 Pro tip: Use @mycode</p>
+          <p className="text-xs text-gray-300">Type "@" to reference your current code in questions!</p>
+        </div>
+      </div>
 
       <motion.div
         className="grid grid-cols-2 gap-2 mt-6"
@@ -579,9 +274,11 @@ const EmptyState = () => {
 interface AiAssistantProps {
   isOpen: boolean;
   onToggle: () => void;
+  code?: string; // Add code context prop
+  language?: string; // Add language context prop
 }
 
-const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
+const AiAssistant = ({ isOpen, onToggle, code, language }: AiAssistantProps) => {
   interface Message {
     type: 'user' | 'assistant';
     content: string;
@@ -594,6 +291,10 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
+  // @mycode feature state
+  const [showMyCodeDropdown, setShowMyCodeDropdown] = useState(false);
+  const [atMentionPosition, setAtMentionPosition] = useState<number | null>(null);
+
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -605,37 +306,30 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
     try {
       setIsLoading(true);
 
-      // const completion = await openai.chat.completions.create({
-      //   model: "google/gemini-flash-1.5-8b-exp",
-      //   // max_tokens: 1000,
-      //   // temperature: 0.7,
-      //   messages: [
-      //     {
-      //       role: "user",
-      //       content: question
-      //     }
-      //   ]
-      // });
+      // Use backend API endpoint instead of direct Gemini calls
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/api/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: question,
+          context: question.toLowerCase().includes('@mycode') && code ? { code, language } : undefined,
+          history: messages.map(msg => ({
+            role: msg.type === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        })
+      });
 
-      const genAI = new GoogleGenerativeAI("AIzaSyCF6mKRofVaWa-4RC6hjYQtijNqxOZSt58");
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-      const prompt = question;
-
-      const result = await model.generateContent(prompt);
-      console.log(result.response.text());
-
-      // console.log('OpenRouter response:', completion);
-
-      // const responseContent = completion?.choices?.[0]?.message?.content;
-      // if (responseContent) {
-      //   return responseContent;
-      // }
-
-      const responseContent = result.response.text();
-      console.log("ResponseContent is : ", responseContent);
-      if (responseContent) {
-        return responseContent;
+      const result = await response.json();
+      
+      if (result.success && result.data?.message) {
+        return result.data.message;
       }
 
       throw new Error('Invalid response format from AI service');
@@ -672,7 +366,7 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
     setTimeout(scrollToBottom, 100);
   }, [messages, isLoading]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = useCallback(async (e: any) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
       e.stopPropagation();
@@ -681,7 +375,7 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
     if (!input.trim() || isLoading) return;
 
     const currentInput = input;
-    setInput('');
+    setInput(''); // Move this to the top to clear input immediately
 
     const userMessage: Message = {
       type: 'user' as const,
@@ -716,7 +410,7 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
       setIsLoading(false);
     }
     setTimeout(scrollToBottom, 100);
-  };
+  }, [input, isLoading]);
 
   const placeholders = [
     "What's the first rule of Fight Club?",
@@ -726,38 +420,73 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
     "How to assemble your own PC?",
   ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-  };
+  const handleInputSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    // This will be called by PlaceholdersAndVanishInput
+    // We need to prevent it from causing render issues
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Use setTimeout to defer the actual submission to next tick
+    setTimeout(() => {
+      handleSubmit(e);
+    }, 0);
+  }, [handleSubmit]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInput(value);
+
+    // Detect @ mentions for @mycode feature
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex !== -1 && atIndex === value.length - 1) {
+      // @ is at the end, show dropdown
+      setShowMyCodeDropdown(true);
+      setAtMentionPosition(atIndex);
+    } else {
+      // Hide dropdown if @ is not at the end
+      setShowMyCodeDropdown(false);
+      setAtMentionPosition(null);
+    }
+  }, []);
+
+  const handleMyCodeSelect = useCallback(() => {
+    if (atMentionPosition !== null) {
+      const beforeAt = input.substring(0, atMentionPosition);
+      const newInput = beforeAt + '@mycode ';
+      setInput(newInput);
+      setShowMyCodeDropdown(false);
+      setAtMentionPosition(null);
+    }
+  }, [input, atMentionPosition]);
 
 
 
   // Add this SuggestionChip component right after the EmptyState component
 
-  const SuggestionChip = ({ text }: { text: string }) => {
-    const [isHovered, setIsHovered] = useState(false);
+const SuggestionChip = ({ text }: { text: string }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
-    return (
-      <motion.div
-        className="bg-gray-700/50 backdrop-blur-sm rounded-full px-3 py-2 text-xs text-gray-300 cursor-pointer border border-gray-700"
-        whileHover={{
-          scale: 1.03,
-          backgroundColor: "rgba(59, 130, 246, 0.15)",
-          borderColor: "rgba(59, 130, 246, 0.3)"
-        }}
-        whileTap={{ scale: 0.97 }}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
+  return (
+    <motion.div
+      className="bg-gray-700/50 backdrop-blur-sm rounded-full px-3 py-2 text-xs text-gray-300 cursor-pointer border border-gray-700"
+      whileHover={{
+        scale: 1.03,
+        backgroundColor: "rgba(59, 130, 246, 0.15)",
+        borderColor: "rgba(59, 130, 246, 0.3)"
+      }}
+      whileTap={{ scale: 0.97 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
+      <motion.span
+        animate={{ color: isHovered ? "rgb(147, 197, 253)" : "rgb(209, 213, 219)" }}
+        transition={{ duration: 0.2 }}
       >
-        <motion.span
-          animate={{ color: isHovered ? "rgb(147, 197, 253)" : "rgb(209, 213, 219)" }}
-          transition={{ duration: 0.2 }}
-        >
-          {text}
-        </motion.span>
-      </motion.div>
-    );
-  };
+        {text}
+      </motion.span>
+    </motion.div>
+  );
+};
 
 
   useEffect(() => {
@@ -906,10 +635,37 @@ const AiAssistant = ({ isOpen, onToggle }: AiAssistantProps) => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
+            {/* @mycode dropdown */}
+            <AnimatePresence>
+              {showMyCodeDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-2 p-2 bg-gray-700 rounded-lg border border-gray-600"
+                >
+                  <motion.div
+                    className="flex items-center gap-2 p-2 hover:bg-gray-600 rounded cursor-pointer"
+                    onClick={handleMyCodeSelect}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
+                      <span className="text-xs text-white font-bold">@</span>
+                    </div>
+                    <div>
+                      <div className="text-sm text-white font-medium">my code</div>
+                      <div className="text-xs text-gray-400">Reference your current code</div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <PlaceholdersAndVanishInput
               placeholders={placeholders}
-              onChange={(e) => setInput(e.target.value)}
-              onSubmit={handleSubmit}
+              onChange={handleInputChange}
+              onSubmit={handleInputSubmit}
             />
           </motion.div>
         </motion.div>

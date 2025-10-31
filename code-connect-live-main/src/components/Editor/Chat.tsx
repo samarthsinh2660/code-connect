@@ -124,10 +124,11 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
   }
 
     const handleReceiveMessage = (message: Message) => {
-      // Normalize incoming message username
+      // Normalize incoming message username - backend sends 'username', frontend expects 'sender'
+      const sender = ((message as any).username || message.sender || 'Unknown').toLowerCase()
       const normalizedMessage = {
         ...message,
-        sender: message.sender.toLowerCase()
+        sender: sender
       }
   
       setMessages((prev) => {
@@ -291,7 +292,7 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
                   ) : (
                     <ScrollArea
                       ref={scrollAreaRef}
-                      className="h-[calc(100vh-13rem)] absolute inset-0"
+                      className="h-full w-full"
                     >
                       <div className="flex flex-col space-y-4 p-4 min-h-full">
                         <AnimatePresence initial={false}>
@@ -310,7 +311,7 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
                 </div>
 
                 <motion.div
-                  className="flex-none border-t p-3 text-black border-gray-800/50 bg-gray-900/95 backdrop-blur-lg"
+                  className="flex-none border-t p-3 border-gray-800/50 bg-gray-900/95 backdrop-blur-lg min-h-[120px]"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
@@ -581,19 +582,19 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
                     <AnimatePresence>
                       {!isFocused && !isTyping && (
                         <motion.div
-                          className="absolute left-3 -bottom-6 text-xs text-slate-500 flex items-center gap-1.5"
+                          className="absolute left-3 -bottom-6 text-[10px] text-slate-400 flex items-center gap-1.5"
                           initial={{ opacity: 0 }}
                           animate={{
-                            opacity: 0.5,
+                            opacity: 0.3,
                             transition: { delay: 1, duration: 0.3 },
                           }}
                           exit={{ opacity: 0 }}
                         >
-                          <span className="px-1 py-0.5 bg-slate-800/50 rounded text-[10px] border border-slate-700/50">
+                          <span className="px-0.5 py-0.5 bg-slate-700/30 rounded text-[9px] border border-slate-600/30">
                             {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
                           </span>
-                          <span className="px-1 py-0.5 bg-slate-800/50 rounded text-[10px] border border-slate-700/50">/</span>
-                          <span>to focus</span>
+                          <span className="px-0.5 py-0.5 bg-slate-700/30 rounded text-[9px] border border-slate-600/30">/</span>
+                          <span className="text-slate-500">to focus</span>
                         </motion.div>
                       )}
                     </AnimatePresence>

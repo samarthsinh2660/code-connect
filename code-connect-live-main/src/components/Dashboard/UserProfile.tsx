@@ -21,7 +21,7 @@ import {
 import { LogOut, UserCircle, Settings, Camera, Edit, Bell, ChevronRight, Shield, Key, Smartphone, Globe, Moon, Sun, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
@@ -33,7 +33,7 @@ interface UserProfileProps {
 const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
@@ -44,6 +44,11 @@ const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
   // Mouse follower effect
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    mouseX.set(e.clientX);
+    mouseY.set(e.clientY);
+  };
   
   // Check for backend JWT auth
   const backendToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
@@ -62,24 +67,198 @@ const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
     );
   }
   
-  // If backend token but no Clerk user, show simple profile
+  // If backend token but no Clerk user, show backend user profile
   if (!user && backendToken) {
     const userDataFromStorage = localStorage.getItem('user');
     const userData = userDataFromStorage ? JSON.parse(userDataFromStorage) : null;
+    const fullName = userData?.username || 'User';
+    const fallbackText = fullName[0]?.toUpperCase() || 'U';
+    
+    // Backend user state
+    const [showProfileDialog, setShowProfileDialog] = useState(false);
+    const [showSettingsDialog, setShowSettingsDialog] = useState(false);
     
     return (
-      <motion.button
-        onClick={() => {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          window.location.reload();
-        }}
-        className="px-4 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-all duration-200"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {userData?.username || 'Sign Out'}
-      </motion.button>
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.button
+              className="outline-none relative group"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onHoverStart={() => setIsHovering(true)}
+              onHoverEnd={() => setIsHovering(false)}
+            >
+              <AnimatePresence>
+                {isHovering && (
+                  <motion.span
+                    className="absolute -inset-1.5 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-full blur-sm"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </AnimatePresence>
+              <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-offset-2 ring-offset-background transition-all duration-300 ring-green-500/50 group-hover:ring-green-500 z-10">
+                <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white">
+                  {fallbackText}
+                </AvatarFallback>
+              </Avatar>
+            </motion.button>
+          </DropdownMenuTrigger>
+          
+          <DropdownMenuContent 
+            className="w-64 p-2 bg-card/95 backdrop-blur-md border-border shadow-xl rounded-xl"
+            align="end"
+            sideOffset={8}
+          >
+            <DropdownMenuLabel className="px-3 py-3">
+              <div className="flex items-center space-x-3">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Avatar className="h-12 w-12 ring-2 ring-offset-2 ring-offset-background ring-green-500/30">
+                    <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600">
+                      {fallbackText}
+                    </AvatarFallback>
+                  </Avatar>
+                </motion.div>
+                <div className="flex flex-col">
+                  <span className="text-base font-semibold text-foreground">{fullName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Local Account
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            
+            <DropdownMenuSeparator className="bg-border my-2" />
+            
+            <div className="px-1 py-1 space-y-1">
+              <DropdownMenuItem 
+                className="flex items-center justify-between px-3 py-2.5 hover:bg-primary/10 rounded-lg cursor-pointer text-foreground transition-all duration-200"
+                onClick={() => setShowProfileDialog(true)}
+                asChild
+              >
+                <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }}>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10">
+                      <UserCircle className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <span className="font-medium">Profile</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </motion.div>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                className="flex items-center justify-between px-3 py-2.5 hover:bg-primary/10 rounded-lg cursor-pointer text-foreground transition-all duration-200"
+                onClick={() => setShowSettingsDialog(true)}
+                asChild
+              >
+                <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }}>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10">
+                      <Settings className="h-4 w-4 text-purple-500" />
+                    </div>
+                    <span className="font-medium">Settings</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </motion.div>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator className="bg-border my-2" />
+              
+              <DropdownMenuItem 
+                className="flex items-center justify-between px-3 py-2.5 hover:bg-red-500/10 rounded-lg cursor-pointer text-red-500 transition-all duration-200"
+                onClick={() => {
+                  localStorage.removeItem('auth_token');
+                  localStorage.removeItem('user');
+                  window.location.reload();
+                }}
+                asChild
+              >
+                <motion.div 
+                  whileHover={{ x: 2 }} 
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10">
+                      <LogOut className="h-4 w-4 text-red-500" />
+                    </div>
+                    <span className="font-medium">Sign out</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-red-500/70" />
+                </motion.div>
+              </DropdownMenuItem>
+            </div>
+        </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Combined Profile & Settings Dialog for Backend Users */}
+        <AnimatePresence>
+          {(showProfileDialog || showSettingsDialog) && (
+            <Dialog 
+              open={showProfileDialog || showSettingsDialog} 
+              onOpenChange={(open) => {
+                if (!open) {
+                  setShowProfileDialog(false);
+                  setShowSettingsDialog(false);
+                }
+              }}
+            >
+              <DialogContent 
+                className="sm:max-w-[500px] p-0 overflow-hidden bg-card border-border rounded-xl"
+                onMouseMove={handleMouseMove}
+              >
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-br from-green-600/5 to-blue-600/5 pointer-events-none"
+                  style={{ 
+                    backgroundPosition: "calc(50% + 40px) calc(50% + 40px)",
+                    backgroundSize: "120% 120%"
+                  }}
+                />
+                
+                <div className="relative z-10">
+                  <Tabs 
+                    defaultValue={showProfileDialog ? "profile" : "settings"} 
+                    className="w-full"
+                    onValueChange={setActiveTab}
+                  >
+                    <div className="flex items-center justify-between px-6 pt-6 pb-4">
+                      <DialogTitle className="text-xl font-semibold">
+                        {activeTab === "profile" ? "Your Profile" : "Account Settings"}
+                      </DialogTitle>
+                      <TabsList className="grid grid-cols-2 h-9">
+                        <TabsTrigger 
+                          value="profile" 
+                          className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                        >
+                          Profile
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="settings"
+                          className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                        >
+                          Settings
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+                    
+                    <TabsContent value="profile" className="mt-0">
+                      <BackendProfileTab userData={userData} />
+                    </TabsContent>
+                    
+                    <TabsContent value="settings" className="mt-0">
+                      <SettingsTab />
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
@@ -108,11 +287,6 @@ const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
       toast.error("Failed to sign out");
       setIsLoading(false);
     }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    mouseX.set(e.clientX);
-    mouseY.set(e.clientY);
   };
 
   return (
@@ -315,6 +489,64 @@ const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
         )}
       </AnimatePresence>
     </>
+  );
+};
+
+const BackendProfileTab = ({ userData }: { userData: any }) => {
+  return (
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col items-center space-y-6">
+        {/* Avatar */}
+        <motion.div 
+          className="relative group"
+          whileHover={{ scale: 1.02 }}
+        >
+          <Avatar className="h-28 w-28 ring-4 ring-offset-4 ring-offset-background ring-green-500/30 transition-all duration-300 group-hover:ring-green-500/70">
+            <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-3xl">
+              {userData?.username?.[0]?.toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+        </motion.div>
+
+        {/* Profile Info */}
+        <div className="w-full space-y-6 relative">
+          <div className="flex flex-col items-center space-y-3">
+            <motion.h3 
+              className="text-2xl font-bold"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-blue-500">
+                {userData?.username || 'Local User'}
+              </span>
+            </motion.h3>
+            
+            <motion.div 
+              className="flex items-center space-x-2 bg-green-500/10 px-3 py-1.5 rounded-full"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Globe className="w-3.5 h-3.5 text-green-500" />
+              <span className="text-sm text-green-500 font-medium">Local Account</span>
+            </motion.div>
+          </div>
+
+          {/* Info message for backend users */}
+          <motion.div 
+            className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <p className="text-sm text-green-700 dark:text-green-300">
+              You are logged in with a local account. Profile editing features are available for authenticated users.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -734,7 +966,7 @@ const SettingsTab = () => {
               <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
 
         {/* Device Management */}
@@ -753,7 +985,7 @@ const SettingsTab = () => {
               <p className="text-sm text-muted-foreground">Manage connected devices and sessions</p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
       </div>
     </div>

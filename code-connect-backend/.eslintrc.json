@@ -1,31 +1,46 @@
 {
+  "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2020,
+    "ecmaVersion": "latest",
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
-    "@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
-  "env": {
-    "node": true,
-    "es6": true
-  },
   "rules": {
     "@typescript-eslint/no-unused-vars": [
-      "error",
+      "warn",
       {
-        "argsIgnorePattern": "^(req|_.*)$",
+        "argsIgnorePattern": "^(_|req|res|next)$",
         "varsIgnorePattern": "^_",
-        "args": "after-used",
-        "ignoreRestSiblings": false
+        "caughtErrorsIgnorePattern": "^_"
       }
     ],
     "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off"
-  }
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "no-console": "off"
+  },
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "ignorePatterns": ["dist", "node_modules", "logs", "*.js"],
+  "overrides": [
+    {
+      "files": ["src/routes/*.ts", "src/controllers/*.ts", "src/server.ts"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": [
+          "off",
+          {
+            "argsIgnorePattern": ".*",
+            "varsIgnorePattern": ".*"
+          }
+        ]
+      }
+    }
+  ]
 }

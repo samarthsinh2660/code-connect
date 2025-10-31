@@ -11,10 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Socket } from 'socket.io-client';
+import { ACTIONS } from '@/lib/actions';
 
 interface WhiteboardProps {
   isOpen: boolean;
   onToggle: () => void;
+  socketRef?: React.MutableRefObject<Socket | null>;
+  roomId?: string;
 }
 
 type Tool = 'pen' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'text' | 'image';
@@ -31,7 +35,7 @@ type DrawingAction = {
   height?: number;
 };
 
-const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle }) => {
+const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle, socketRef, roomId }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
@@ -79,6 +83,38 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle }) => {
       drawAction(action);
     });
   }, [actions, context]);
+
+  // Socket.IO listeners for whiteboard synchronization
+  useEffect(() => {
+    if (!socketRef?.current || !roomId) return;
+
+    const socket = socketRef.current;
+
+    // Listen for drawing actions from other users
+    socket.on(ACTIONS.WHITEBOARD_DRAW, ({ action }: { action: DrawingAction }) => {
+      setActions(prev => [...prev, action]);
+    });
+
+    // Listen for whiteboard clear from other users
+    socket.on(ACTIONS.WHITEBOARD_CLEAR, () => {
+      setActions([]);
+      setRedoStack([]);
+    });
+
+    // Listen for whiteboard sync (when joining)
+    socket.on(ACTIONS.WHITEBOARD_SYNC, ({ actions: syncedActions }: { actions: DrawingAction[] }) => {
+      setActions(syncedActions);
+    });
+
+    // Request sync when component mounts
+    socket.emit(ACTIONS.WHITEBOARD_SYNC_REQUEST, { roomId });
+
+    return () => {
+      socket.off(ACTIONS.WHITEBOARD_DRAW);
+      socket.off(ACTIONS.WHITEBOARD_CLEAR);
+      socket.off(ACTIONS.WHITEBOARD_SYNC);
+    };
+  }, [socketRef, roomId]);
 
   // Resize canvas function
   const resizeCanvas = () => {
@@ -267,6 +303,15 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle }) => {
     
     // Add current action to actions array
     setActions([...actions, currentAction]);
+    
+    // Emit socket event for real-time sync
+    if (socketRef?.current && roomId) {
+      socketRef.current.emit(ACTIONS.WHITEBOARD_DRAW, { 
+        roomId, 
+        action: currentAction 
+      });
+    }
+    
     setCurrentAction(null);
     setIsDrawing(false);
   };
@@ -293,6 +338,15 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle }) => {
       };
       
       setActions([...actions, newAction]);
+      
+      // Emit socket event for text action
+      if (socketRef?.current && roomId) {
+        socketRef.current.emit(ACTIONS.WHITEBOARD_DRAW, { 
+          roomId, 
+          action: newAction 
+        });
+      }
+      
       setTextInput('');
       setTextPosition(null);
       setIsAddingText(false);
@@ -333,6 +387,11 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isOpen, onToggle }) => {
     
     if (context && canvasRef.current) {
       context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+    
+    // Emit socket event for clear action
+    if (socketRef?.current && roomId) {
+      socketRef.current.emit(ACTIONS.WHITEBOARD_CLEAR, { roomId });
     }
   };
 
