@@ -87,13 +87,32 @@ const moodEmojis = {
   busy: "😓"
 } as const
 
-// const avatarStyles = [
-//   bottts as unknown as AvatarStyle,
-//   lorelei as unknown as AvatarStyle,
-//   micah as unknown as AvatarStyle,
-//   pixelArt as unknown as AvatarStyle,
-//   adventurer as unknown as AvatarStyle,
-// ];
+// Utility function to format last active time
+const formatLastActive = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+
+    // For older dates, show formatted date
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    return 'Unknown';
+  }
+};
 
 const TypingAnimation = () => {
   return (
@@ -259,7 +278,7 @@ export const Client: React.FC<ClientProps> = ({
               variants={itemVariants}
             >
               <Zap size={14} />
-              <span>Last active: {lastActive}</span>
+              <span>Last active: {formatLastActive(lastActive)}</span>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, useMemo, Suspense } from "react"
-import { motion, AnimatePresence, useAnimation } from "framer-motion"
+import { motion, AnimatePresence, useAnimation, easeOut  } from "framer-motion"
 import { toast, Toaster } from "sonner"
 import { useParams, useSearchParams } from "next/navigation"
 import { ACTIONS } from "@/lib/actions"
@@ -231,7 +231,7 @@ function EditorPageContent() {
         scale: 1,
         transition: {
           duration: 0.5,
-          ease: "easeOut",
+          ease: easeOut,
           staggerChildren: 0.1,
         },
       },
@@ -245,7 +245,7 @@ function EditorPageContent() {
       visible: {
         y: 0,
         opacity: 1,
-        transition: { duration: 0.5, ease: "easeOut" },
+        transition: { duration: 0.5, ease: easeOut },
       },
     }),
     [],
@@ -269,6 +269,9 @@ function EditorPageContent() {
 
     console.log("Joining room with:", { roomId, username: username })
 
+    // Store timeout reference so we can clear it
+    let joinTimeout: NodeJS.Timeout | null = null
+
     // Ensure socket is ready before emitting
     if (socket && socket.connected) {
       socket.emit(ACTIONS.JOIN, {
@@ -277,7 +280,7 @@ function EditorPageContent() {
       })
 
       // Set timeout for backend response
-      const joinTimeout = setTimeout(() => {
+      joinTimeout = setTimeout(() => {
         console.error("Backend JOIN timeout - no response received")
         setConnectionStatus("failed")
         setIsLoading(false)
@@ -286,7 +289,10 @@ function EditorPageContent() {
 
       // Clear timeout when JOINED event is received
       socket.once(ACTIONS.JOINED, () => {
-        clearTimeout(joinTimeout)
+        if (joinTimeout) {
+          clearTimeout(joinTimeout)
+          joinTimeout = null
+        }
       })
     } else {
       console.warn("Socket not ready for JOIN emission")
@@ -337,7 +343,14 @@ function EditorPageContent() {
 
     socket.on("error", handleSocketError)
 
+    // Cleanup function
     return () => {
+      // Clear the timeout if it's still running
+      if (joinTimeout) {
+        clearTimeout(joinTimeout)
+        joinTimeout = null
+      }
+      
       socket.off(ACTIONS.JOINED)
       socket.off(ACTIONS.DISCONNECTED)
       socket.off(ACTIONS.CODE_CHANGE)

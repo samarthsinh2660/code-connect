@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, ChevronRight, Copy, Check, Loader2, SendIcon, BotOffIcon, BotIcon } from 'lucide-react';
+import { Bot, Send, ChevronRight, Copy, Check, Loader2, BotOffIcon, BotIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { PlaceholdersAndVanishInput } from '../ui/placeholders-and-vanish-input';
+import { easeOut } from 'framer-motion'
 
 const messageAnimations = {
   initial: {
@@ -19,7 +20,7 @@ const messageAnimations = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: "easeOut"
+      ease: easeOut
     }
   },
   exit: {

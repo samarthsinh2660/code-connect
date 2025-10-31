@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useRef, useEffect, useState, useMemo, RefObject } from "react"
-import { motion, useAnimation, useReducedMotion, Variant, Variants, HTMLMotionProps, AnimationControls } from "framer-motion"
+import { motion, useAnimation, useReducedMotion, type Variant, type Variants, type HTMLMotionProps } from "framer-motion"
+
 import { useInView } from "react-intersection-observer"
 import { cn } from "@/lib/utils"
 
@@ -106,7 +107,7 @@ export const RevealAnimation: React.FC<RevealAnimationProps> = ({
   rootMargin = "-100px",
   triggerOnce = true,
   customVariants,
-  easing = "easeOut",
+  easing = "easeOut" as any,
   offsetDistance = 50,
   scale = 0.9,
   rotate = 15,
@@ -247,7 +248,7 @@ export const RevealGroup: React.FC<RevealAnimationProps & { as?: React.ElementTy
   )
 }
 
-export const useRevealAnimation = (options: Omit<RevealAnimationProps, 'children'>): [React.RefObject<HTMLElement>, AnimationControls] => {
+export const useRevealAnimation = (options: Omit<RevealAnimationProps, 'children'>): [React.RefObject<HTMLElement>, ReturnType<typeof useAnimation>] => {
   const controls = useAnimation()
   const ref = useRef<HTMLElement>(null)
   const { ref: inViewRef, inView } = useInView({

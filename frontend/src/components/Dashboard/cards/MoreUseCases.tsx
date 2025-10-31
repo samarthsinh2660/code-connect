@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect } from 'react'
-import { motion, useAnimation, useInView, useScroll, useTransform } from "framer-motion"
+import { motion, useAnimation, useInView, useScroll, useTransform, easeOut } from "framer-motion"
 import { NeonGlow } from '../animations/NeonGlow'
 import { HoverCard } from './HoverCard'
 
@@ -52,7 +52,7 @@ export default function MoreUseCases() {
             transition: {
                 delay: i * 0.1,
                 duration: 0.5,
-                ease: "easeOut",
+                ease: easeOut,
             },
         }),
     }

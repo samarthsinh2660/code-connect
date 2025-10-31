@@ -1,3 +1,5 @@
+"use client"
+
 import { useUser } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useEffect, useState, useRef } from "react";

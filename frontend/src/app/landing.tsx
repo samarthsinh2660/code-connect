@@ -16,7 +16,6 @@ import {
   Boxes,
 } from "lucide-react"
 import {
-  FloatingHexagon,
   CodeBlock,
 } from "@/components/Dashboard/Decorative"
 import Header from "@/components/Dashboard/Header"
@@ -102,6 +101,11 @@ const FAQSection = dynamic(
     ),
     ssr: true
   }
+)
+
+const FloatingHexagon = dynamic(
+  () => import('@/components/Dashboard/Decorative').then(mod => mod.FloatingHexagon),
+  { ssr: false }
 )
 
 interface CodeConnectProps {

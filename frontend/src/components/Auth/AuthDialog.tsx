@@ -1,5 +1,5 @@
 import { useSignIn, useSignUp } from "@clerk/nextjs";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
 import AdvancedCursor from "../Dashboard/Cursor";
 import { Code, Mail, Loader2, ArrowRight, Globe, Check, Lock } from 'lucide-react';
@@ -258,7 +258,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       opacity: 1, 
       y: 0, 
       transition: { 
-        type: "spring", 
+        type: "spring" as const, 
         duration: 0.6, 
         bounce: 0.25,
         delayChildren: 0.1,
@@ -271,7 +271,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       y: 20, 
       transition: { 
         duration: 0.3,
-        ease: "easeInOut"
+        ease: easeInOut
       } 
     }
   };

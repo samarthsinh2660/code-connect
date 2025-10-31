@@ -1,8 +1,12 @@
+"use client"
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { AnimatedLogo } from './Decorative';
-import UserProfile from './UserProfile';
+import dynamic from 'next/dynamic';
+
+const UserProfile = dynamic(() => import('./UserProfile'), { ssr: false });
 
 export const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
