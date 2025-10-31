@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import userRepository from '../repositories/user.repository.js';
 import { successResponse, listResponse, createdResponse } from '../utils/response.js';
 import { ERRORS } from '../utils/error.js';
+import createLogger from '../utils/logger.js';
+
+const logger = createLogger('@user-controller');
 
 export class UserController {
     async createUser(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -27,6 +30,8 @@ export class UserController {
                 email: user.email,
                 createdAt: user.createdAt
             };
+
+            logger.info(`User created successfully: ${username}`);
 
             res.status(201).json(createdResponse(userResponse, 'User created successfully'));
         } catch (error) {

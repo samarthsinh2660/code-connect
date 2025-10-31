@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import roomRepository from '../repositories/room.repository.js';
 import { successResponse, listResponse } from '../utils/response.js';
 import { ERRORS } from '../utils/error.js';
+import createLogger from '../utils/logger.js';
+
+const logger = createLogger('@room-controller');
 
 export class RoomController {
     async createRoom(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -20,6 +23,7 @@ export class RoomController {
             }
 
             const room = await roomRepository.createRoom(roomId);
+            logger.info(`Room created successfully: ${roomId}`);
             res.status(201).json(successResponse(room, 'Room created successfully'));
         } catch (error) {
             next(error);
