@@ -41,6 +41,5 @@ const UserSchema = new Schema<IUser>({
 // Indexes for faster queries
 UserSchema.index({ username: 1 });
 UserSchema.index({ socketId: 1 });
-UserSchema.index({ clerkId: 1 });
 
 export const UserModel = mongoose.model<IUser>('User', UserSchema);
