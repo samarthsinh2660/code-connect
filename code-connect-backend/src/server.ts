@@ -111,21 +111,13 @@ async function startServer() {
 
         // Start server
         const server = httpServer.listen(PORT, () => {
-            logger.info(`
-╔════════════════════════════════════════════════════════╗
-║                                                        ║
-║      🚀 Code Connect Backend Server Started 🚀        ║
-║                                                        ║
-║  Environment: ${NODE_ENV.padEnd(39)}  ║
-║  Port: ${PORT.padEnd(45)}  ║
-║  Socket.IO: Active                                     ║
-║  Database: Connected                                   ║
-║                                                        ║
-║  Health Check: http://localhost:${PORT}/health${' '.repeat(Math.max(0, 16 - PORT.length))}  ║
-║  API Status: http://localhost:${PORT}/api/status${' '.repeat(Math.max(0, 10 - PORT.length))}  ║
-║                                                        ║
-╚════════════════════════════════════════════════════════╝
-            `);
+            logger.info(`🚀 Code Connect Backend Server Started!`);
+            logger.info(`📡 Environment: ${NODE_ENV}`);
+            logger.info(`🔌 Port: ${PORT}`);
+            logger.info(`⚡ Socket.IO: Active`);
+            logger.info(`🗄️ Database: Connected`);
+            logger.info(`💚 Health Check: http://localhost:${PORT}/health`);
+            logger.info(`📊 API Status: http://localhost:${PORT}/api/status`);
         });
 
         // Graceful shutdown
