@@ -3,46 +3,8 @@ import axios from 'axios';
 import { ERRORS } from '../utils/error.js';
 import { CompileRequest, CompileResult, SupportedLanguage } from '../types/api.types.js';
 import { JUDGE0_API_KEY, CODE_EXECUTION_TIMEOUT, MAX_CODE_LENGTH } from '../config/env.js';
+import { Judge0Submission, Judge0Response , LANGUAGE_IDS, JUDGE0_API_URL } from '../types/api.types.js';
 
-// Judge0 API configuration (free tier)
-const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com';
-
-// Language ID mapping for Judge0
-const LANGUAGE_IDS: { [key: string]: number } = {
-  javascript: 63,    // Node.js
-  python: 71,        // Python 3
-  java: 62,          // Java
-  c: 50,             // C (GCC 9.2.0)
-  cpp: 54,           // C++ (GCC 9.2.0)
-  typescript: 74,    // TypeScript
-  csharp: 51,        // C#
-  go: 60,            // Go
-  rust: 73,          // Rust
-  ruby: 72,          // Ruby
-  php: 68,           // PHP
-  swift: 83,         // Swift
-  kotlin: 78,        // Kotlin
-};
-
-interface Judge0Submission {
-  source_code: string;
-  language_id: number;
-  stdin?: string;
-  expected_output?: string;
-}
-
-interface Judge0Response {
-  stdout: string | null;
-  stderr: string | null;
-  compile_output: string | null;
-  message: string | null;
-  status: {
-    id: number;
-    description: string;
-  };
-  time: string;
-  memory: number;
-}
 
 /**
  * Compile and execute code

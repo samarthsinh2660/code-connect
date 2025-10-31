@@ -22,6 +22,46 @@ export interface SupportedLanguage {
   displayName: string;
 }
 
+// Language ID mapping for Judge0
+export const LANGUAGE_IDS: { [key: string]: number } = {
+  javascript: 63,    // Node.js
+  python: 71,        // Python 3
+  java: 62,          // Java
+  c: 50,             // C (GCC 9.2.0)
+  cpp: 54,           // C++ (GCC 9.2.0)
+  typescript: 74,    // TypeScript
+  csharp: 51,        // C#
+  go: 60,            // Go
+  rust: 73,          // Rust
+  ruby: 72,          // Ruby
+  php: 68,           // PHP
+  swift: 83,         // Swift
+  kotlin: 78,        // Kotlin
+};
+
+// Judge0 API configuration
+export const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com';
+
+export interface Judge0Submission {
+  source_code: string;
+  language_id: number;
+  stdin?: string;
+  expected_output?: string;
+}
+
+export interface Judge0Response {
+  stdout: string | null;
+  stderr: string | null;
+  compile_output: string | null;
+  message: string | null;
+  status: {
+    id: number;
+    description: string;
+  };
+  time: string;
+  memory: number;
+}
+
 // AI types
 export interface ChatMessage {
   role: 'user' | 'assistant';
