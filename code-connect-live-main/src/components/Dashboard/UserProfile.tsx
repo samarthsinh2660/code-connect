@@ -2,6 +2,7 @@ import { useUser } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useEffect, useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { motion as framerMotion } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +26,11 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 
-const UserProfile = () => {
+interface UserProfileProps {
+  onOpenAuth?: () => void;
+}
+
+const UserProfile = ({ onOpenAuth }: UserProfileProps = {}) => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { theme, setTheme } = useTheme();
@@ -40,10 +45,46 @@ const UserProfile = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  if (!user) return null;
+  // Check for backend JWT auth
+  const backendToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  
+  // If no Clerk user and no backend token, show sign in button
+  if (!user && !backendToken) {
+    return (
+      <motion.button
+        onClick={onOpenAuth}
+        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Sign In
+      </motion.button>
+    );
+  }
+  
+  // If backend token but no Clerk user, show simple profile
+  if (!user && backendToken) {
+    const userDataFromStorage = localStorage.getItem('user');
+    const userData = userDataFromStorage ? JSON.parse(userDataFromStorage) : null;
+    
+    return (
+      <motion.button
+        onClick={() => {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          window.location.reload();
+        }}
+        className="px-4 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-all duration-200"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {userData?.username || 'Sign Out'}
+      </motion.button>
+    );
+  }
 
-  const fullName = user.fullName || user.username || 'User';
-  const fallbackText = fullName[0].toUpperCase();
+  const fullName = user?.fullName || user?.username || 'User';
+  const fallbackText = fullName[0]?.toUpperCase() || 'U';
   
   const handleSignOut = async () => {
     try {
@@ -98,7 +139,7 @@ const UserProfile = () => {
             </AnimatePresence>
             <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-offset-2 ring-offset-background transition-all duration-300 ring-blue-500/50 group-hover:ring-blue-500 z-10">
               <AvatarImage 
-                src={user.imageUrl} 
+                src={user?.imageUrl} 
                 alt={fullName}
                 className="object-cover"
               />
@@ -125,7 +166,7 @@ const UserProfile = () => {
               <div className="flex items-center space-x-3">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Avatar className="h-12 w-12 ring-2 ring-offset-2 ring-offset-background ring-blue-500/30">
-                    <AvatarImage src={user.imageUrl} alt={fullName} className="object-cover" />
+                    <AvatarImage src={user?.imageUrl} alt={fullName} className="object-cover" />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600">
                       {fallbackText}
                     </AvatarFallback>
@@ -134,7 +175,7 @@ const UserProfile = () => {
                 <div className="flex flex-col">
                   <span className="text-base font-semibold text-foreground">{fullName}</span>
                   <span className="text-xs text-muted-foreground truncate max-w-[180px]">
-                    {user.primaryEmailAddress?.emailAddress}
+                    {user?.primaryEmailAddress?.emailAddress}
                   </span>
                 </div>
               </div>
@@ -296,6 +337,8 @@ const ProfileTab = ({ user }: { user: any }) => {
   }, [user]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) return;
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -315,6 +358,8 @@ const ProfileTab = ({ user }: { user: any }) => {
   };
 
   const handleProfileUpdate = async () => {
+    if (!user) return;
+
     try {
       setIsLoading(true);
       
@@ -717,6 +762,18 @@ const SettingsTab = () => {
 
 // Helper function to get user data
 const getUserData = (user: any) => {
+  if (!user) {
+    return {
+      firstName: "",
+      lastName: "",
+      profileImageUrl: "",
+      email: "",
+      username: "",
+      provider: "Email",
+      bio: ""
+    };
+  }
+
   // Check if user has external accounts
   const externalAccounts = user?.externalAccounts || [];
   const linkedInAccount = externalAccounts.find(

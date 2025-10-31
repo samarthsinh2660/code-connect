@@ -104,7 +104,11 @@ const FAQSection = dynamic(
   }
 )
 
-export default function CodeConnect() {
+interface CodeConnectProps {
+  onOpenAuth?: () => void;
+}
+
+export default function CodeConnect({ onOpenAuth }: CodeConnectProps = {}) {
   const [roomId, setRoomId] = useState("")
   const [username, setUsername] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -182,7 +186,7 @@ export default function CodeConnect() {
 
             <RevealAnimation>
               <div className="container mx-auto px-4 py-8">
-                <Header />
+                <Header onOpenAuth={onOpenAuth} />
                 <RevealAnimation
                   effect={["fade", "slide", "blur"]}
                   duration={0.8}

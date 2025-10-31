@@ -21,13 +21,13 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="antialiased">
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <body className="antialiased" suppressHydrationWarning>
         <ClerkProvider>
-          <ThemeProvider attribute="class">
+          <ThemeProvider attribute="class" enableSystem defaultTheme="system" disableTransitionOnChange>
             <SocketProvider>
               {children}
-              <Toaster expand={false} position="top-center" richColors theme="dark" />
+              <Toaster expand={false} position="top-center" richColors />
             </SocketProvider>
           </ThemeProvider>
         </ClerkProvider>

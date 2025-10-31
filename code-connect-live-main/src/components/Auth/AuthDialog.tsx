@@ -2,13 +2,14 @@ import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
 import AdvancedCursor from "../Dashboard/Cursor";
-import { Code, Mail, Loader2, ArrowRight, Globe, Check } from 'lucide-react';
+import { Code, Mail, Loader2, ArrowRight, Globe, Check, Lock } from 'lucide-react';
 import { GlowingButton } from "../Dashboard/buttons/GlowingButton";
 import { FuturisticInput } from "../Dashboard/buttons/FuturisticInput";
 import { toast } from "sonner";
 import OTPInput from "../Dashboard/buttons/OTPInput";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,12 +17,16 @@ interface AuthModalProps {
 }
 
 type AuthView = "sign-in" | "sign-up" | "verify-otp";
+type AuthMethod = "oauth" | "password";
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+  const router = useRouter();
   const [view, setView] = useState<AuthView>("sign-in");
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verificationToken, setVerificationToken] = useState("");
   const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
@@ -36,6 +41,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      // Reset to sign-in view when modal opens
+      setView("sign-in");
+      setAuthMethod("password");
     } else {
       document.body.style.overflow = "unset";
     }
@@ -44,7 +52,53 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     };
   }, [isOpen]);
 
-  // Memoized form submission handler
+  // Backend password auth handler
+  const handlePasswordAuth = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const endpoint = view === "sign-in" ? "/api/auth/login" : "/api/auth/register";
+      const payload = view === "sign-in" 
+        ? { username, password }
+        : { username, email, password };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Authentication failed');
+      }
+
+      // Save JWT token
+      localStorage.setItem('auth_token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+
+      toast.success(view === "sign-in" ? "Signed in successfully!" : "Account created successfully!", {
+        icon: <Check className="h-4 w-4 text-green-500" />,
+      });
+
+      // Close modal first
+      onClose();
+      
+      // Force reload to update auth state
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      toast.error(error.message || "Authentication failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [view, username, email, password, onClose, router]);
+
+  // Clerk email OTP handler
   const handleEmailSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignInLoaded || !isSignUpLoaded) return;
@@ -171,13 +225,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         return {
           title: "Welcome Back",
           subtitle: "Sign in to continue your coding journey",
-          buttonText: "Send Verification Code"
+          buttonText: authMethod === "password" ? "Sign In" : "Send Verification Code"
         };
       case "sign-up":
         return {
           title: "Join CodeConnect",
           subtitle: "Create an account to start collaborating",
-          buttonText: "Create Account"
+          buttonText: authMethod === "password" ? "Create Account" : "Send Verification Code"
         };
       case "verify-otp":
         return {
@@ -350,11 +404,48 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     </AnimatePresence>
                   </motion.div>
 
+                  {/* Auth Method Toggle */}
+                  {view !== "verify-otp" && (
+                    <motion.div
+                      variants={itemVariants}
+                      className="w-full mb-6"
+                    >
+                      <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                        <button
+                          type="button"
+                          onClick={() => setAuthMethod("password")}
+                          className={cn(
+                            "flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                            authMethod === "password"
+                              ? "bg-blue-600 text-white shadow-lg"
+                              : "text-gray-400 hover:text-white"
+                          )}
+                        >
+                          <Lock className="w-4 h-4 inline mr-1" />
+                          Password
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAuthMethod("oauth")}
+                          className={cn(
+                            "flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                            authMethod === "oauth"
+                              ? "bg-purple-600 text-white shadow-lg"
+                              : "text-gray-400 hover:text-white"
+                          )}
+                        >
+                          <Mail className="w-4 h-4 inline mr-1" />
+                          Email Link
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Form */}
                   <AnimatePresence mode="wait">
                     <motion.form
                       key={view}
-                      onSubmit={view === "verify-otp" ? handleOTPVerification : handleEmailSubmit}
+                      onSubmit={view === "verify-otp" ? handleOTPVerification : authMethod === "password" ? handlePasswordAuth : handleEmailSubmit}
                       className="w-full space-y-5"
                       variants={itemVariants}
                       initial="hidden"
@@ -383,34 +474,66 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                         </motion.div>
                       ) : (
                         <>
-                          {view === "sign-up" && (
+                          <motion.div variants={itemVariants}>
+                            <FuturisticInput
+                              label="Username"
+                              id="username"
+                              icon={Globe}
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              placeholder="Choose a username"
+                              required
+                              autoFocus
+                            />
+                          </motion.div>
+
+                          {authMethod === "password" && view === "sign-up" && (
                             <motion.div variants={itemVariants}>
                               <FuturisticInput
-                                label="Username"
-                                id="username"
-                                icon={Globe}
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Choose a username"
+                                label="Email"
+                                id="email"
+                                icon={Mail}
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
                                 required
-                                autoFocus
                               />
                             </motion.div>
                           )}
 
-                          <motion.div variants={itemVariants}>
-                            <FuturisticInput
-                              label="Email"
-                              id="email"
-                              icon={Mail}
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="Enter your email"
-                              required
-                              autoFocus={view === "sign-in"}
-                            />
-                          </motion.div>
+                          {authMethod === "password" && (
+                            <motion.div variants={itemVariants}>
+                              <FuturisticInput
+                                label="Password"
+                                id="password"
+                                icon={Lock}
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter your password"
+                                required
+                                minLength={8}
+                              />
+                              <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                            </motion.div>
+                          )}
+
+                          {authMethod === "oauth" && (
+                            <motion.div variants={itemVariants}>
+                              <FuturisticInput
+                                label="Email"
+                                id="email"
+                                icon={Mail}
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                required
+                                autoFocus={view === "sign-in"}
+                              />
+                            </motion.div>
+                          )}
                         </>
                       )}
 
@@ -420,9 +543,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                       >
                         <GlowingButton
                           className="w-full"
-                          disabled={isLoading || !isSignInLoaded || !isSignUpLoaded}
+                          disabled={isLoading || (authMethod === "oauth" && (!isSignInLoaded || !isSignUpLoaded))}
                           type="submit"
-                          color={view === "verify-otp" ? "green" : view === "sign-up" ? "purple" : "blue"}
+                          color={view === "verify-otp" ? "green" : authMethod === "password" ? "blue" : view === "sign-up" ? "purple" : "blue"}
                         >
                           <AnimatePresence mode="wait">
                             {isLoading ? (
@@ -452,7 +575,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                           </AnimatePresence>
                         </GlowingButton>
 
-                        {view !== "verify-otp" && (
+                        {view !== "verify-otp" && authMethod === "password" && (
                           <>
                             <div className="relative">
                               <div className="absolute inset-0 flex items-center">
@@ -498,17 +621,21 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 {/* Footer */}
                 {view !== "verify-otp" && (
                   <motion.div
-                    className="w-full mt-8 pt-4 border-t border-gray-800/50 text-center"
+                    className="w-full mt-8 pt-4 border-t-2 border-blue-500/30 text-center bg-gray-900/20 rounded-b-2xl px-4 py-3"
                     variants={itemVariants}
                   >
-                    <p className="text-gray-300 text-sm">
+                   
+                    <p className="text-gray-200 text-sm font-medium">
                       {view === "sign-in" ? (
                         <>
                           Don't have an account?{" "}
                           <button
                             type="button"
-                            onClick={() => setView("sign-up")}
-                            className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                            onClick={() => {
+                              console.log("Sign up button clicked");
+                              setView("sign-up");
+                            }}
+                            className="text-blue-400 hover:text-blue-300 transition-colors font-bold underline underline-offset-2 hover:underline-offset-4 text-base bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1 rounded"
                           >
                             Sign up
                           </button>
@@ -518,8 +645,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                           Already have an account?{" "}
                           <button
                             type="button"
-                            onClick={() => setView("sign-in")}
-                            className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                            onClick={() => {
+                              console.log("Sign in button clicked");
+                              setView("sign-in");
+                            }}
+                            className="text-blue-400 hover:text-blue-300 transition-colors font-bold underline underline-offset-2 hover:underline-offset-4 text-base bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1 rounded"
                           >
                             Sign in
                           </button>

@@ -114,8 +114,12 @@ export const MobileNav = () => {
   );
 };
 
+interface HeaderProps {
+  onOpenAuth?: () => void;
+}
+
 // Modified header section
-const Header = () => {
+const Header = ({ onOpenAuth }: HeaderProps = {}) => {
   return (
     <motion.header
       className="flex items-center justify-between mb-16"
@@ -183,13 +187,13 @@ const Header = () => {
           ))}
 
         <div className="ml-4">
-          <UserProfile />
+          <UserProfile onOpenAuth={onOpenAuth} />
         </div>
         </motion.nav>
         
         {/* Mobile Navigation */}
         <div className="lg:hidden flex items-center gap-4">
-        <UserProfile />
+        <UserProfile onOpenAuth={onOpenAuth} />
         <MobileNav />
       </div>      </div>
     </motion.header>

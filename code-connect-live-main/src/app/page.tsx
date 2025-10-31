@@ -9,21 +9,23 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Handle initial auth state
+  // Handle initial auth state - DON'T auto-open modal
   useEffect(() => {
     if (isLoaded) {
       setInitialLoadComplete(true);
-      // Show auth modal if user is not signed in
-      setShowAuthModal(!isSignedIn);
+      // Don't auto-show modal - let user browse landing page first
+      // setShowAuthModal(!isSignedIn);
     }
   }, [isLoaded, isSignedIn]);
 
-  // If auth state changes, update modal visibility
+  // Check for backend JWT auth
   useEffect(() => {
-    if (initialLoadComplete) {
-      setShowAuthModal(!isSignedIn);
+    const token = localStorage.getItem('auth_token');
+    if (token && !isSignedIn) {
+      // User is authenticated via backend JWT
+      setShowAuthModal(false);
     }
-  }, [isSignedIn, initialLoadComplete]);
+  }, [isSignedIn]);
 
   // Keyboard shortcut for debug mode
   useEffect(() => {
@@ -44,11 +46,12 @@ export default function Home() {
 
   // Handle modal close attempt
   const handleCloseModal = () => {
-    // Only allow closing the modal if user is signed in
-    if (isSignedIn) {
-      setShowAuthModal(false);
-    }
-    // If not signed in, modal remains open
+    setShowAuthModal(false);
+  };
+
+  // Function to open auth modal (will be passed to landing page)
+  const handleOpenAuth = () => {
+    setShowAuthModal(true);
   };
 
   // Show loading state before Clerk is loaded
@@ -58,7 +61,7 @@ export default function Home() {
 
   return (
     <>
-      <CodeConnect />
+      <CodeConnect onOpenAuth={handleOpenAuth} />
       <AuthModal
         isOpen={showAuthModal}
         onClose={handleCloseModal}

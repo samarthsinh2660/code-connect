@@ -1,137 +1,400 @@
-# Code Connect
+# Code Connect 🚀
 
-A modern, real-time collaborative code editor platform that enables developers to code together seamlessly with features like live editing, chat, whiteboard, AI assistance, and immersive UI effects.
+A modern, real-time collaborative code editor platform that enables developers to code together seamlessly with advanced features like live editing, chat, whiteboard, AI assistance, and immersive UI effects.
+
+![Code Connect](https://img.shields.io/badge/Version-1.0.0-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15.1.6-black.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue.svg)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-4.7.5-black.svg)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg)
 
 ## ✨ Features
 
-- **Real-time Collaboration**: Live code synchronization across multiple users in the same room
-- **Dual Editors**: Support for both Monaco Editor (VS Code-like) and CodeMirror editors
-- **Interactive Whiteboard**: Draw and collaborate visually alongside code
-- **Real-time Chat**: Instant messaging with emoji support and typing indicators
-- **AI Assistant**: Integrated AI chat for coding help and suggestions (powered by Google Gemini and OpenAI)
-- **Code Compilation**: Run and test code snippets with live console output
-- **Fluid Cursor Effects**: Immersive WebGL-based fluid simulation for cursor interactions
-- **Authentication**: Secure user authentication via Clerk
-- **Responsive Design**: Modern UI built with Tailwind CSS and shadcn/ui components
-- **Dark/Light Themes**: Automatic theme switching with next-themes
-- **Animations**: Smooth animations powered by Framer Motion and GSAP
+### Core Collaboration Features
+- **🔄 Real-time Code Synchronization** - Live code editing across multiple users
+- **💬 Real-time Chat** - Instant messaging with emoji support and typing indicators
+- **🎨 Interactive Whiteboard** - Collaborative drawing with multiple tools and real-time sync
+- **🤖 AI Assistant** - Context-aware AI chat powered by Google Gemini 2.0 Flash
+- **⚡ Code Execution** - Run and test code in 13+ languages with sandboxed execution
+- **🧠 Smart Context** - @mycode mentions for AI to reference current code
+
+### Advanced UI/UX
+- **🎭 Fluid Cursor Effects** - WebGL-based fluid simulation for immersive interactions
+- **🎨 Dual Editors** - Monaco Editor (VS Code-like) and CodeMirror support
+- **🌙 Dark/Light Themes** - Automatic theme switching with system preference detection
+- **📱 Responsive Design** - Works seamlessly on desktop and mobile devices
+- **✨ Smooth Animations** - Powered by Framer Motion and GSAP
+
+### Technical Features
+- **🔐 Hybrid Authentication** - Choose between Email/Password or OAuth (Google/GitHub)
+- **🏠 Room Management** - Multiple isolated collaboration rooms
+- **📊 Performance Optimized** - Advanced caching, memoization, and lazy loading
+- **🛡️ Security First** - Rate limiting, input validation, and error handling
+- **📈 Scalable Architecture** - Built for production deployment
 
 ## 🏗️ Architecture
 
-### Frontend
-The application is built as a **Next.js 15** React application with the following stack:
-
+### Frontend (Next.js 15)
 - **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript for type safety
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **Animations**: Framer Motion for React animations, GSAP for advanced animations
-- **3D Graphics**: Three.js with React Three Fiber for fluid simulations
-- **Editors**: Monaco Editor and CodeMirror for code editing
-- **State Management**: React hooks and context providers
-- **Real-time Communication**: Socket.IO client for WebSocket connections
-- **Authentication**: Clerk for user management
-- **Icons**: Lucide React icon library
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui
+- **State**: React hooks + Context providers
+- **Real-time**: Socket.IO client
+- **Auth**: Clerk (OAuth) + Custom JWT
 
-### Backend
-The backend is a separate **Node.js Socket.IO server** deployed on Railway:
+### Backend (Node.js + TypeScript)
+- **Server**: Express.js + Socket.IO
+- **Database**: MongoDB with Mongoose
+- **Auth**: JWT tokens + bcrypt hashing
+- **Security**: Rate limiting + CORS protection
+- **Logging**: Winston structured logging
 
-- **Server**: Node.js with Socket.IO for real-time bidirectional communication
-- **Hosting**: Railway (https://code-connect-server-production.up.railway.app)
-- **Database**: (Not specified in frontend code, likely uses in-memory storage or external DB)
+### Communication Flow
+```
+User Action → Component → Socket Emit → Server → Broadcast → Client Update → UI Render
+```
 
-### How It Works
-
-1. **Authentication Flow**:
-   - Users authenticate via Clerk on the landing page
-   - Upon successful login, users can access the collaborative editor
-
-2. **Room Creation & Joining**:
-   - Rooms are identified by unique IDs in the URL path (`/editor/[roomId]`)
-   - Users join rooms by navigating to specific room URLs
-   - Room state is synchronized in real-time across all connected clients
-
-3. **Real-time Collaboration**:
-   - **Code Sync**: Code changes are broadcast via Socket.IO events (`CODE_CHANGE`, `SYNC_CODE`)
-   - **User Presence**: Join/leave events track active users in rooms
-   - **Typing Indicators**: Shows when users are typing (`TYPING`, `STOP_TYPING`)
-   - **Chat System**: Real-time messaging with message synchronization
-
-4. **Code Execution**:
-   - Code compilation requests are sent to the backend
-   - Backend processes code and returns output via `COMPILE_RESULT`
-   - Console output is displayed in a dedicated panel
-
-5. **AI Integration**:
-   - AI chat interface powered by Google Gemini AI
-   - Context-aware code suggestions and explanations
-   - Integrated directly in the editor interface
-
-6. **Fluid Cursor System**:
-   - WebGL-based fluid simulation using custom shaders
-   - Tracks cursor movements and creates particle effects
-   - Enhances user experience with visual feedback
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
-- npm, yarn, pnpm, or bun
+- MongoDB (local or Atlas)
+- npm/yarn/pnpm
 
-### Installation
-
-1. Clone the repository:
+### 1. Clone & Setup
 ```bash
-git clone https://github.com/your-username/code-connect.git
+# Clone the repository
+git clone <repository-url>
 cd code-connect
-```
 
-2. Install dependencies:
-```bash
+# Install frontend dependencies
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
+
+# Setup backend
+cd code-connect-backend
+npm install
+cp .env.example .env
 ```
 
-3. Set up environment variables:
-Create a `.env.local` file with:
+### 2. Configure Environment
+
+#### Frontend (.env.local)
 ```env
-NEXT_PUBLIC_SOCKET_URL=https://code-connect-server-production.up.railway.app
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
+CLERK_SECRET_KEY=your_clerk_secret
 ```
 
-4. Run the development server:
+#### Backend (.env)
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb+srv://your-mongodb-atlas-connection
+JWT_SECRET=your-super-secret-jwt-key
+CORS_ORIGIN=http://localhost:3000
+
+# Code Compilation (NEW)
+JUDGE0_API_KEY=your_rapidapi_key_here
+
+# AI Service (NEW)
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### 3. Start Services
+
+#### Terminal 1: Backend
 ```bash
+cd code-connect-backend
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Terminal 2: Frontend
+```bash
+cd code-connect-live-main
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Open Browser
+- Frontend: http://localhost:3000
+- Backend Health: http://localhost:5000/health
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Authentication
 
-## Learn More
+Code Connect offers **two authentication methods**:
 
-To learn more about Next.js, take a look at the following resources:
+### Option 1: Email & Password (Custom)
+- Register with username, email, password
+- Secure JWT token authentication
+- Full control over user data
+- No external dependencies
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Option 2: OAuth (Clerk)
+- Sign in with Google, GitHub, or other providers
+- Managed authentication service
+- Social login features
+- Enterprise-ready security
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Choosing Authentication
+1. **Visit the sign-up page**: http://localhost:3000/sign-up
+2. **Toggle between methods** using the buttons at the top
+3. **Choose based on your needs**:
+   - Email/Password: Traditional signup flow
+   - OAuth: Quick social login
 
-## Deploy on Vercel
+## 🎯 How to Use
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Authentication
+- Sign up or sign in using your preferred method
+- Access is granted to the collaborative editor
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Create/Join a Room
+- Rooms are identified by unique URLs: `/editor/[roomId]`
+- Share room URLs to collaborate with others
+- Each room maintains isolated code, chat, and whiteboard sessions
+
+### 3. Real-time Collaboration
+- **Code Editor**: Changes sync instantly across all users
+- **Chat**: Send messages and see typing indicators
+- **Whiteboard**: Draw collaboratively with various tools
+- **AI Assistant**: Get coding help and suggestions
+
+### 4. Code Execution
+- Select from 13+ supported programming languages (JavaScript, Python, Java, C++, C, Go, Rust, etc.)
+- Click "Run Code" to execute and see live output in a dedicated console panel
+- Sandboxed execution ensures safe code running without affecting your system
+
+### 5. AI Assistant
+- **Context-Aware Help**: AI understands your current code and project context
+- **Smart Mentions**: Use `@mycode` in your messages to reference your current code
+- **Multiple Features**: Code explanations, suggestions, error fixing, and more
+- **Powered by Gemini 2.0 Flash**: Advanced AI model for accurate coding assistance
+
+### 6. Whiteboard Collaboration
+- **Real-time Sync**: Drawing actions sync instantly across all users
+- **Multiple Tools**: Pen, eraser, shapes, text, and image insertion
+- **Persistent State**: Whiteboard content persists for room participants
+
+## 📡 API Overview
+
+### REST Endpoints
+```bash
+GET  /api/status          # API information
+GET  /health              # Health check
+POST /api/auth/register   # User registration
+POST /api/auth/login      # User login
+GET  /api/auth/me         # Get current user
+POST /api/auth/logout     # Logout
+GET  /api/rooms           # List active rooms
+POST /api/rooms           # Create room
+GET  /api/rooms/:id       # Get room details
+PUT  /api/rooms/:id/code  # Update room code
+
+# Code Compilation & AI (NEW)
+POST /api/compiler/compile     # Execute code in multiple languages
+GET  /api/compiler/languages   # Get supported programming languages
+POST /api/ai/chat             # Chat with AI assistant
+POST /api/ai/explain          # Get code explanations
+POST /api/ai/suggestions      # Get code improvement suggestions
+POST /api/ai/fix              # Fix code errors with AI
+```
+
+### Socket.IO Events
+```javascript
+// Join/Leave
+socket.emit('join', { id: roomId, user: username });
+socket.emit('leave', { roomId });
+
+// Code Sync
+socket.emit('code-change', { roomId, code });
+socket.on('code-change', ({ code }) => { /* update editor */ });
+
+// Chat
+socket.emit('send-message', { roomId, username, message });
+socket.on('receive-message', (message) => { /* display message */ });
+
+// Code Execution
+socket.emit('compile', { roomId, code, language });
+socket.on('compile-result', ({ result, error }) => { /* show output */ });
+
+// Whiteboard (NEW)
+socket.emit('whiteboard-draw', { roomId, action });
+socket.emit('whiteboard-clear', { roomId });
+socket.emit('whiteboard-sync-request', { roomId });
+socket.on('whiteboard-draw', ({ action }) => { /* draw action */ });
+socket.on('whiteboard-clear', () => { /* clear whiteboard */ });
+socket.on('whiteboard-sync', ({ actions }) => { /* load whiteboard state */ });
+```
+
+## 🛠️ Development
+
+### Available Scripts
+
+#### Frontend
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
+
+#### Backend
+```bash
+npm run dev      # Development with tsx watch
+npm run build    # TypeScript compilation
+npm start        # Production server
+```
+
+### Project Structure
+```
+code-connect/
+├── code-connect-live-main/     # Frontend (Next.js)
+│   ├── src/app/               # Next.js app directory
+│   ├── src/components/        # React components
+│   ├── src/providers/         # Context providers
+│   └── public/                # Static assets
+├── code-connect-backend/      # Backend (Express + Socket.IO)
+│   ├── src/
+│   │   ├── controllers/       # Request handlers
+│   │   ├── models/           # Database models
+│   │   ├── routes/           # API routes
+│   │   ├── services/         # Business logic
+│   │   └── utils/            # Utilities
+│   └── .env.example          # Environment template
+└── README.md                  # This file
+```
+
+## 🚢 Deployment
+
+### Frontend (Vercel)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+### Backend (Railway)
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and deploy
+railway login
+railway init
+railway add --plugin mongodb
+railway up
+```
+
+### Environment Variables for Production
+```env
+# Frontend
+NEXT_PUBLIC_SOCKET_URL=https://your-backend-domain.com
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
+
+# Backend
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://production-connection
+JWT_SECRET=super-secure-production-key
+CORS_ORIGIN=https://your-frontend-domain.com
+```
+
+## 🔧 Configuration
+
+### MongoDB Setup
+1. **Atlas (Recommended)**: Create cluster at [MongoDB Atlas](https://cloud.mongodb.com)
+2. **Local**: Install MongoDB and run `mongod`
+3. Update `MONGODB_URI` in backend `.env`
+
+### Clerk Setup
+1. Create app at [Clerk Dashboard](https://dashboard.clerk.dev)
+2. Get publishable and secret keys
+3. Configure OAuth providers (Google, GitHub)
+4. Update frontend `.env.local`
+
+### Socket.IO Configuration
+- CORS origins configured in backend
+- Connection limits and timeouts set
+- Automatic reconnection enabled
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**"Cannot find package 'uuid'"**
+```bash
+cd code-connect-backend
+npm install
+```
+
+**"MongoDB connection failed"**
+- Check `MONGODB_URI` in `.env`
+- Ensure MongoDB is running (local) or accessible (Atlas)
+- Verify network connectivity
+
+**"Socket.IO connection failed"**
+- Check backend is running on port 5000
+- Verify `NEXT_PUBLIC_SOCKET_URL` points to correct backend URL
+- Check CORS configuration
+
+**"Authentication not working"**
+- Verify Clerk keys in frontend `.env.local`
+- Check JWT secret in backend `.env`
+- Ensure MongoDB connection for user storage
+
+**Hydration errors**
+```bash
+# Clear Next.js cache
+cd code-connect-live-main
+rm -rf .next
+npm run dev
+```
+
+### Development Tips
+- Use browser developer tools to inspect Socket.IO connections
+- Check server logs for detailed error messages
+- Use MongoDB Compass to inspect database state
+- Enable Clerk debug mode for auth troubleshooting
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test thoroughly
+4. Commit: `git commit -m 'Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+### Development Guidelines
+- Use TypeScript for all new code
+- Follow existing code style and patterns
+- Add proper error handling
+- Test real-time features thoroughly
+- Update documentation for new features
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Next.js Team** - For the amazing React framework
+- **Socket.IO** - Real-time communication made easy
+- **MongoDB** - Flexible document database
+- **Clerk** - Authentication simplified
+- **shadcn/ui** - Beautiful component library
+- **Framer Motion** - Smooth animations
+- **Monaco Editor** - VS Code editing experience
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- **Email**: support@codeconnect.dev
+
+---
+
+**Built with ❤️ for collaborative coding. Happy hacking! 🚀**
+
+> *"Code together, learn together, build together."*
