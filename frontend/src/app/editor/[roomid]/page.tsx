@@ -302,7 +302,8 @@ function EditorPageContent() {
     socket.on(ACTIONS.JOINED, ({ clients, user, socketId, isSelf }) => {
       // Only show toast for other users joining (not for self)
       if (!isSelf) {
-        toast.success(`${user} joined the room`)
+        // Removed green toast notification that appears in middle
+        // toast.success(`${user} joined the room`)
       }
       
       setClients(clients)
