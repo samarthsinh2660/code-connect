@@ -223,11 +223,17 @@ export const Client: React.FC<ClientProps> = ({
         </AnimatePresence>
 
         <motion.div
-          className="relative rounded-full overflow-hidden"
+          className="relative rounded-full overflow-hidden w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500"
           whileHover={{ scale: 1.1, rotate: 360 }}
           transition={{ type: "spring", stiffness: 300, damping: 10 }}
         >
-          <Image width={16} height={16} src={avatar || "/placeholder.svg"} alt={user} className="w-16 h-16" />
+          {avatar ? (
+            <Image width={64} height={64} src={avatar} alt={user} className="w-16 h-16" />
+          ) : (
+            <div className="w-16 h-16 flex items-center justify-center text-white text-2xl font-bold">
+              {user.charAt(0).toUpperCase()}
+            </div>
+          )}
         </motion.div>
       </motion.div>
 

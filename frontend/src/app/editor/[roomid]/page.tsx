@@ -916,7 +916,7 @@ function EditorPageContent() {
             variants={itemVariants}
           >
             <motion.div
-              className="flex-1"
+              className="flex-1 overflow-hidden relative"
               ref={editorRef}
               style={{
                 height: isConsoleOpen ? `calc(100vh - ${consoleHeight + 120}px)` : 'calc(100vh - 120px)',
@@ -959,22 +959,13 @@ function EditorPageContent() {
           </motion.div>
 
 
-          {isChatOpen && (
-  <motion.div 
-    className="w-80 border-l border-gray-700 h-full" 
-    variants={itemVariants}
-    initial="hidden"
-    animate="visible"
-    exit="hidden"
-  >
-    <Chat
-      roomId={roomId as string}
-      username={username || ""}
-      isOpen={true} // Always true - the container decides visibility
-      onToggle={() => setIsChatOpen(false)}
-    />
-  </motion.div>
-)}
+          {/* Chat component - always mounted to receive socket events */}
+          <Chat
+            roomId={roomId as string}
+            username={username || ""}
+            isOpen={isChatOpen}
+            onToggle={() => setIsChatOpen(!isChatOpen)}
+          />
 
           <AiAssistant
             isOpen={isAiPanelOpen}

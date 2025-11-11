@@ -2,11 +2,12 @@
 
 A modern, real-time collaborative code editor platform that enables developers to code together seamlessly with advanced features like live editing, chat, whiteboard, AI assistance, and immersive UI effects.
 
-![Code Connect](https://img.shields.io/badge/Version-1.0.0-blue.svg)
+![Code Connect](https://img.shields.io/badge/Version-1.1.0-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-15.1.6-black.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue.svg)
 ![Socket.IO](https://img.shields.io/badge/Socket.IO-4.7.5-black.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg)
+![Chat Persistence](https://img.shields.io/badge/Chat-Persistent-success.svg)
 
 ## ✨ Features
 
@@ -20,10 +21,12 @@ A modern, real-time collaborative code editor platform that enables developers t
 
 ### Advanced UI/UX
 - **🎭 Fluid Cursor Effects** - WebGL-based fluid simulation for immersive interactions
-- **🎨 Dual Editors** - Monaco Editor (VS Code-like) and CodeMirror support
+- **🎨 Dual Editors** - Monaco Editor (VS Code-like) with minimap disabled for clean UI
 - **🌙 Dark/Light Themes** - Automatic theme switching with system preference detection
 - **📱 Responsive Design** - Works seamlessly on desktop and mobile devices
 - **✨ Smooth Animations** - Powered by Framer Motion and GSAP
+- **💬 Persistent Chat** - Chat messages persist when users join rooms
+- **🔄 Chat History** - Late joiners see previous conversation history
 
 ### Technical Features
 - **🔐 Hybrid Authentication** - Choose between Email/Password or OAuth (Google/GitHub)
@@ -174,6 +177,52 @@ Code Connect offers **two authentication methods**:
 - **Multiple Tools**: Pen, eraser, shapes, text, and image insertion
 - **Persistent State**: Whiteboard content persists for room participants
 
+### 7. Chat Persistence
+- **Message History**: Chat messages are saved to database and persist across sessions
+- **Late Joiner Support**: New users joining a room see all previous conversation history
+- **Automatic Cleanup**: Messages are deleted when the last user leaves the room
+- **Real-time Updates**: All users see new messages instantly while maintaining history
+
+## 🔧 Recent Updates & Bug Fixes
+
+### v1.1.0 - Chat Persistence & UI Fixes
+- ✅ **Chat Persistence**: Messages now persist in database and show to late joiners
+- ✅ **Profile Visibility**: Users see all profiles immediately on joining (no refresh needed)
+- ✅ **Minimap Fix**: Monaco editor minimap disabled to prevent overlay issues
+- ✅ **React Hooks**: Fixed hooks order violations causing component remounting
+- ✅ **Avatar Fallback**: Improved user avatar loading with initial-based fallbacks
+- ✅ **Container Overflow**: Added proper containment to prevent UI elements from escaping
+
+### Database Schema (Chat Persistence)
+```javascript
+// Room document structure
+{
+  roomId: "unique-room-id",
+  clients: [
+    { socketId: "socket123", username: "user1", joinedAt: ISODate("...") }
+  ],
+  code: "// collaborative code...",
+  language: "javascript",
+  messages: [
+    {
+      id: "msg123",
+      username: "user1",
+      content: "Hello everyone!",
+      timestamp: ISODate("2025-11-11T12:00:00.000Z")
+    }
+  ],
+  isActive: true, // Room has users
+  lastActivity: ISODate("2025-11-11T12:05:00.000Z")
+}
+```
+
+### Chat Lifecycle
+1. **User joins** → Loads existing messages from DB
+2. **Send message** → Saves to DB + broadcasts to all users
+3. **Late joiner** → Receives all previous messages via `SYNC_MESSAGES`
+4. **Last user leaves** → Messages deleted from DB, room marked inactive
+5. **New user joins empty room** → Fresh start with no old messages
+
 ## 📡 API Overview
 
 ### REST Endpoints
@@ -211,6 +260,7 @@ socket.on('code-change', ({ code }) => { /* update editor */ });
 // Chat
 socket.emit('send-message', { roomId, username, message });
 socket.on('receive-message', (message) => { /* display message */ });
+socket.on('sync-messages', ({ messages }) => { /* display chat history */ });
 
 // Code Execution
 socket.emit('compile', { roomId, code, language });
@@ -343,6 +393,27 @@ npm install
 - Check JWT secret in backend `.env`
 - Ensure MongoDB connection for user storage
 
+**"Chat messages not persisting"**
+- Check MongoDB connection and database access
+- Verify Room collection has `messages` array
+- Ensure users are in the same room
+- Check server logs for DB operation errors
+
+**"Users don't see chat history on join"**
+- Verify Chat component is always mounted (not conditionally rendered)
+- Check `SYNC_MESSAGES` event is fired on join
+- Ensure backend loads messages from DB on room join
+
+**"Monaco editor minimap overlaying UI"**
+- Check that `minimap: { enabled: false }` is set in editor options
+- Verify editor container has `overflow: hidden`
+- Clear browser cache and reload
+
+**"React hooks order violation errors"**
+- Ensure all hooks are called at the top level of components
+- Move `useTransform` hooks before any conditional JSX
+- Check for missing dependencies in useEffect
+
 **Hydration errors**
 ```bash
 # Clear Next.js cache
@@ -350,6 +421,10 @@ cd code-connect-live-main
 rm -rf .next
 npm run dev
 ```
+
+**404 errors for placeholder.svg**
+- This is fixed in v1.1.0 - avatars now show user initials
+- No action needed for new installations
 
 ### Development Tips
 - Use browser developer tools to inspect Socket.IO connections

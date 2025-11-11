@@ -1,38 +1,39 @@
-# Code Connect
+# Code Connect Frontend
 
-A modern, real-time collaborative code editor platform that enables developers to code together seamlessly with features like live editing, chat, whiteboard, AI assistance, and immersive UI effects.
+A modern, real-time collaborative code editor built with **Next.js 15**, featuring advanced UI effects, persistent chat, and seamless collaboration.
 
 ## ✨ Features
 
 - **Real-time Collaboration**: Live code synchronization across multiple users in the same room
-- **Dual Editors**: Support for both Monaco Editor (VS Code-like) and CodeMirror editors
+- **Dual Editors**: Support for Monaco Editor (VS Code-like) with minimap disabled for clean UI
 - **Interactive Whiteboard**: Draw and collaborate visually alongside code
-- **Real-time Chat**: Instant messaging with emoji support and typing indicators
+- **Persistent Chat**: Chat messages persist in database and show to late joiners
 - **AI Assistant**: Integrated AI chat for coding help and suggestions (powered by Google Gemini 2.0 Flash)
 - **Code Compilation**: Run and test code in 13+ languages with sandboxed execution (Judge0 API)
 - **Fluid Cursor Effects**: Immersive WebGL-based fluid simulation for cursor interactions
-- **Authentication**: Secure user authentication via Clerk
+- **Authentication**: Secure user authentication via Clerk OAuth
 - **Responsive Design**: Modern UI built with Tailwind CSS and shadcn/ui components
 - **Dark/Light Themes**: Automatic theme switching with next-themes
 - **Animations**: Smooth animations powered by Framer Motion and GSAP
 
 ## 🏗️ Architecture
 
-### Frontend
+### Frontend Stack
 The application is built as a **Next.js 15** React application with the following stack:
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript for type safety
+- **Framework**: Next.js 15 with App Router and Server Components
+- **Language**: TypeScript for type safety and better DX
 - **Styling**: Tailwind CSS with shadcn/ui component library
 - **Animations**: Framer Motion for React animations, GSAP for advanced animations
 - **3D Graphics**: Three.js with React Three Fiber for fluid simulations
-- **Editors**: Monaco Editor and CodeMirror for code editing
+- **Editors**: Monaco Editor (VS Code-like) with custom configuration
 - **State Management**: React hooks and context providers
 - **Real-time Communication**: Socket.IO client for WebSocket connections
-- **Authentication**: Clerk for user management
+- **Authentication**: Clerk for user management and OAuth
 - **AI Integration**: Google Gemini 2.0 Flash API for AI assistance
 - **Code Compilation**: Judge0 API for multi-language code execution
 - **Icons**: Lucide React icon library
+- **Forms**: React Hook Form with validation
 
 ### Backend
 The backend is a separate **Node.js Socket.IO server** deployed on Railway:

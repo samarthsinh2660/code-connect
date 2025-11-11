@@ -105,6 +105,9 @@ export const ERRORS = {
     MESSAGE_TOO_LONG: new RequestError("Message exceeds maximum length", 60001, 400),
     INVALID_MESSAGE_FORMAT: new RequestError("Invalid message format", 60002, 400),
     MESSAGE_NOT_FOUND: new RequestError("Message not found", 60003, 404),
+    CHAT_HISTORY_LOAD_FAILED: new RequestError("Failed to load chat history", 60004, 500),
+    CHAT_SYNC_FAILED: new RequestError("Failed to sync chat messages", 60005, 500),
+    CHAT_DELETE_FAILED: new RequestError("Failed to delete chat messages", 60006, 500),
 } as const;
 
 // Helper function to check if error is a RequestError

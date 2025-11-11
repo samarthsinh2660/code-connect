@@ -124,7 +124,9 @@ const MonacoEditor = ({
 
   const options: editor.IStandaloneEditorConstructionOptions = {
     fontSize,
-    minimap: { enabled: true },
+    minimap: { 
+      enabled: false  // Disabled to prevent overflow/overlay issues
+    },
     scrollBeyondLastLine: false,
     wordWrap: 'on',
     autoClosingBrackets: 'always',
@@ -142,7 +144,11 @@ const MonacoEditor = ({
     lineNumbers: 'on',
     // renderIndentGuides: true,
     automaticLayout: true,
-    padding: { top: 16, bottom: 16 }
+    padding: { top: 16, bottom: 16 },
+    scrollbar: {
+      verticalScrollbarSize: 10,
+      horizontalScrollbarSize: 10
+    }
   };
 
   return (

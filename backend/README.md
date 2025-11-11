@@ -6,7 +6,7 @@ Backend server for Code Connect - A real-time collaborative code editor platform
 
 - **Real-time Collaboration**: Socket.IO-based WebSocket server for live code synchronization
 - **Room Management**: Multiple rooms with isolated code sessions
-- **Chat System**: Real-time messaging within rooms
+- **Persistent Chat System**: Chat messages saved to database with automatic cleanup
 - **Code Execution**: Multi-language code compilation with Judge0 API (13+ languages)
 - **AI Assistant**: Context-aware AI chat powered by Google Gemini 2.0 Flash
 - **Whiteboard Sync**: Real-time collaborative drawing synchronization
@@ -130,11 +130,11 @@ npm start
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `joined` | `{ clients, user, socketId }` | User joined room |
+| `joined` | `{ clients, user, socketId, isSelf }` | User joined room |
 | `disconnected` | `{ socketId, user, clients }` | User left room |
 | `code-change` | `{ code }` | Code updated |
 | `sync-code` | `{ code }` | Sync code to new user |
-| `sync-messages` | `{ messages }` | Sync messages to new user |
+| `sync-messages` | `{ messages }` | Sync chat history to new user |
 | `compile-result` | `{ result?, error? }` | Code execution result |
 | `typing` | `{ username }` | User is typing |
 | `stop-typing` | `{ username }` | User stopped typing |
@@ -201,12 +201,27 @@ code-connect-backend/
   clients: [{ socketId, username, joinedAt }],
   code: string,
   language: string,
-  messages: [{ id, username, content, timestamp }],
+  messages: [{ id, username, content, timestamp }], // Persistent chat messages
   createdAt: Date,
   lastActivity: Date,
   isActive: boolean
 }
 ```
+
+### Chat Persistence Flow
+
+1. **User joins room** → Server loads existing messages from DB
+2. **Message sent** → Saved to both memory and database
+3. **Late joiner arrives** → Receives `SYNC_MESSAGES` with full chat history
+4. **Last user leaves** → Messages deleted from DB, room marked inactive
+5. **New session** → Fresh chat history (no old messages)
+
+### Chat Cleanup Logic
+
+- **Active Rooms**: Messages persist while users are present
+- **Empty Rooms**: Messages deleted when last user disconnects
+- **Inactive Rooms**: Periodic cleanup removes old messages (30+ minutes)
+- **Performance**: In-memory chat for speed, DB for persistence
 
 ## 🚀 Deployment
 

@@ -39,13 +39,22 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                 // Get or create room data
                 let roomData = rooms.get(roomId);
                 if (!roomData) {
+                    // Try to load existing room from DB first
+                    let existingRoom = null;
+                    try {
+                        existingRoom = await RoomModel.findOne({ roomId });
+                    } catch (dbError) {
+                        logger.warn('Failed to load room from DB:', dbError);
+                    }
+
+                    // Create room data with existing messages if room was in DB
                     roomData = {
                         roomId,
                         clients: [],
-                        code: '// Start coding here...',
-                        language: 'javascript',
-                        messages: [],
-                        createdAt: new Date(),
+                        code: existingRoom?.code || '// Start coding here...',
+                        language: existingRoom?.language || 'javascript',
+                        messages: existingRoom?.messages || [],
+                        createdAt: existingRoom?.createdAt || new Date(),
                         lastActivity: new Date()
                     };
                     rooms.set(roomId, roomData);
@@ -57,15 +66,17 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                             {
                                 $setOnInsert: {
                                     roomId,
-                                    code: '// Start coding here...',
-                                    language: 'javascript',
-                                    messages: [],
-                                    createdAt: new Date()
+                                    code: roomData.code,
+                                    language: roomData.language,
+                                    messages: roomData.messages,
+                                    createdAt: roomData.createdAt
                                 },
-                                lastActivity: new Date()
+                                lastActivity: new Date(),
+                                isActive: true
                             },
                             { upsert: true, new: true }
                         );
+                        logger.info(`Room ${roomId} loaded with ${roomData.messages.length} existing messages`);
                     } catch (dbError) {
                         logger.warn('Failed to save room to DB:', dbError);
                     }
@@ -81,19 +92,19 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
                     });
                 }
 
-                // Emit to all clients in room except the joining user
-                socket.to(roomId).emit(SOCKET_ACTIONS.JOINED, {
-                    clients: roomData.clients,
-                    user,
-                    socketId: socket.id
-                });
-
-                // Send confirmation to the joining user
+                // Send confirmation to the joining user FIRST with all current clients
                 socket.emit(SOCKET_ACTIONS.JOINED, {
                     clients: roomData.clients,
                     user,
                     socketId: socket.id,
                     isSelf: true // Flag to indicate this is the joining user
+                });
+
+                // Then notify OTHER clients about the new user
+                socket.to(roomId).emit(SOCKET_ACTIONS.JOINED, {
+                    clients: roomData.clients,
+                    user,
+                    socketId: socket.id
                 });
 
                 // Sync current code to new user
@@ -309,7 +320,7 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
         });
 
         // Helper function to handle disconnect
-        function handleDisconnect(socket: Socket, roomId: string) {
+        async function handleDisconnect(socket: Socket, roomId: string) {
             const roomData = rooms.get(roomId);
             if (roomData) {
                 const client = roomData.clients.find((c: any) => c.socketId === socket.id);
@@ -330,24 +341,40 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
 
                     logger.info(`User ${client.username} left room ${roomId}. Remaining: ${roomData.clients.length}`);
 
-                    // Clean up empty rooms
+                    // Clean up empty rooms and delete chat history
                     if (roomData.clients.length === 0) {
                         rooms.delete(roomId);
-                        logger.info(`Room ${roomId} deleted (empty)`);
-                    }
+                        logger.info(`Room ${roomId} is now empty - deleting chat history`);
 
-                    // Update DB in background
-                    try {
-                        RoomModel.findOneAndUpdate(
-                            { roomId },
-                            { 
-                                clients: roomData.clients,
-                                lastActivity: new Date(),
-                                isActive: roomData.clients.length > 0
-                            }
-                        ).catch(err => logger.warn('Failed to update room in DB:', err));
-                    } catch (dbError) {
-                        logger.warn('Failed to update room on disconnect:', dbError);
+                        // Delete chat messages from DB when room becomes empty
+                        try {
+                            await RoomModel.findOneAndUpdate(
+                                { roomId },
+                                { 
+                                    messages: [],
+                                    clients: [],
+                                    lastActivity: new Date(),
+                                    isActive: false
+                                }
+                            );
+                            logger.info(`Chat history deleted for empty room ${roomId}`);
+                        } catch (dbError) {
+                            logger.warn('Failed to delete chat history:', dbError);
+                        }
+                    } else {
+                        // Update DB in background if room still has users
+                        try {
+                            RoomModel.findOneAndUpdate(
+                                { roomId },
+                                { 
+                                    clients: roomData.clients,
+                                    lastActivity: new Date(),
+                                    isActive: true
+                                }
+                            ).catch(err => logger.warn('Failed to update room in DB:', err));
+                        } catch (dbError) {
+                            logger.warn('Failed to update room on disconnect:', dbError);
+                        }
                     }
                 }
             }
@@ -374,17 +401,20 @@ async function cleanupInactiveRooms() {
             }
         });
 
-        // Cleanup database rooms
+        // Cleanup database rooms - delete messages from inactive empty rooms
         const result = await RoomModel.updateMany(
             { 
                 lastActivity: { $lt: thirtyMinutesAgo },
                 'clients.0': { $exists: false }
             },
-            { isActive: false }
+            { 
+                isActive: false,
+                messages: [] // Clear chat history for inactive rooms
+            }
         );
 
         if (result.modifiedCount > 0) {
-            logger.info(`Marked ${result.modifiedCount} rooms as inactive in DB`);
+            logger.info(`Marked ${result.modifiedCount} rooms as inactive and cleared chat history in DB`);
         }
     } catch (error) {
         logger.error('Error cleaning up inactive rooms:', error);

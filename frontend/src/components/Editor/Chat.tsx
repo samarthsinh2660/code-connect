@@ -47,6 +47,12 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
   const springConfig = { damping: 25, stiffness: 300 }
   const cursorXSpring = useSpring(cursorX, springConfig)
   const cursorYSpring = useSpring(cursorY, springConfig)
+  
+  // Move useTransform hooks to top level (Rules of Hooks)
+  const transformX1 = useTransform(cursorXSpring, [0, 300], prefersReducedMotion ? [0, 0] : [-2, 2])
+  const transformY1 = useTransform(cursorYSpring, [0, 60], prefersReducedMotion ? [0, 0] : [-1, 1])
+  const transformX2 = useTransform(cursorXSpring, [0, 300], prefersReducedMotion ? [0, 0] : [-1, 1])
+  const transformY2 = useTransform(cursorYSpring, [0, 60], prefersReducedMotion ? [0, 0] : [-0.5, 0.5])
 
   // Calculate character limit percentage with spring physics
   const charPercentage = Math.min((newMessage.length / charLimit) * 100, 100)
@@ -324,8 +330,8 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
                         style={{
                           background: gradientColors,
                           boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)",
-                          x: useTransform(cursorXSpring, [0, 300], prefersReducedMotion ? [0, 0] : [-2, 2]),
-                          y: useTransform(cursorYSpring, [0, 60], prefersReducedMotion ? [0, 0] : [-1, 1]),
+                          x: transformX1,
+                          y: transformY1,
                         }}
                         animate={{
                           opacity: isFocused ? 0.95 : isTyping ? 0.8 : 0,
@@ -341,8 +347,8 @@ export const Chat = ({ roomId, username, isOpen, onToggle }: ChatProps) => {
                         className="relative w-full z-10 rounded-3xl overflow-hidden backdrop-blur-sm shadow-lg"
                         style={{
                           perspective: 1000,
-                          x: useTransform(cursorXSpring, [0, 300], prefersReducedMotion ? [0, 0] : [-1, 1]),
-                          y: useTransform(cursorYSpring, [0, 60], prefersReducedMotion ? [0, 0] : [-0.5, 0.5]),
+                          x: transformX2,
+                          y: transformY2,
                         }}
                       >
                         {/* Smooth progress indicator with spring physics */}
