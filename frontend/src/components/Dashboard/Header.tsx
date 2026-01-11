@@ -170,24 +170,28 @@ const Header = ({ onOpenAuth }: HeaderProps = {}) => {
         animate="visible"
       >
           {["Features", "How It Works", "FAQ"].map((item) => (
-            <motion.a
+            <motion.div
               key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className="text-slate-300 hover:text-white transition-colors relative"
               variants={{
                 hidden: { opacity: 0, y: -20 },
                 visible: { opacity: 1, y: 0 },
               }}
               whileHover={{ scale: 1.1 }}
+              className="relative"
             >
-              {item}
+              <a
+                href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                className="text-slate-300 hover:text-white transition-colors"
+              >
+                {item}
+              </a>
               <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 origin-left"
                 initial={{ scaleX: 0 }}
                 whileHover={{ scaleX: 1 }}
                 transition={{ duration: 0.3 }}
               />
-            </motion.a>
+            </motion.div>
           ))}
 
         <div className="ml-4">

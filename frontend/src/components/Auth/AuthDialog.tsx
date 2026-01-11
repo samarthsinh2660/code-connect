@@ -297,9 +297,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
-              className="relative w-full max-w-md h-auto max-h-[90vh] bg-gray-900/95 rounded-2xl shadow-2xl overflow-hidden border border-gray-800"
+              className="relative w-full max-w-md bg-gray-900/95 rounded-2xl shadow-2xl overflow-visible border border-gray-800 my-8"
               variants={modalVariants}
               initial="hidden"
               animate="visible"

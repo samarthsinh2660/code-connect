@@ -10,7 +10,7 @@ export const CodeConnectSlider = () => {
 
   return (
     <div 
-      className="w-full overflow-hidden bg-slate-900/50 py-32 relative group"
+      className="w-full overflow-hidden bg-slate-900/50 py-12 md:py-16 lg:py-20 relative group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -47,7 +47,7 @@ export const CodeConnectSlider = () => {
             {[...phrases, ...phrases].map((text, i) => (
               <motion.div
                 key={i}
-                className="mx-4 inline-flex items-center text-[120px] font-bold tracking-tighter"
+                className="mx-4 inline-flex items-center text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter"
                 whileHover={{
                   scale: 1.02,
                   transition: {
