@@ -41,7 +41,7 @@ export class AuthController {
             }
 
             // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await bcrypt.hash(password, 12);
 
             // Create user
             const user = await userRepository.createUser({
